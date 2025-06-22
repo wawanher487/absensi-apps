@@ -91,7 +91,7 @@ const DashboardPresensi = () => {
   ];
 
   return (
-    <div className="p-6 mt-12 bg-gray-100 min-h-screen">
+    <div className="p-6  bg-gray-100 min-h-screen">
       {/* Tanggal Hari Ini */}
       <h2 className="text-xl font-bold text-gray-800 mb-4">
         Tanggal Kehadiran : {tanggal}

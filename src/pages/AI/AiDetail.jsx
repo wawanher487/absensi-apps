@@ -33,13 +33,41 @@ export default function DetailAI() {
   };
 
   const handleSave = async () => {
+    const {
+      nama,
+      guid_device,
+      unit,
+      jam_masuk,
+      jam_keluar,
+      jam_masuk_actual,
+      jam_keluar_actual,
+      jumlah_telat,
+      total_jam_telat,
+      status_absen,
+      process,
+    } = formData;
+
+    const payload = {
+      nama,
+      guid_device,
+      unit,
+      jam_masuk,
+      jam_keluar,
+      jam_masuk_actual,
+      jam_keluar_actual,
+      jumlah_telat: Number(jumlah_telat),
+      total_jam_telat: Number(total_jam_telat),
+      status_absen,
+      process,
+    };
+
     try {
-      const res = await localApi.put(`/history_ai/update/${id}`, formData);
+      const res = await localApi.patch(`/history_ai/update/${id}`, payload);
       setAiData(res.data.data);
       setIsEditing(false);
       alert("Data berhasil diperbarui.");
     } catch (err) {
-      console.error("Gagal mengupdate data:", err);
+      console.error("Gagal mengupdate data:", err.response?.data || err);
       alert("Gagal memperbarui data.");
     }
   };
@@ -49,7 +77,7 @@ export default function DetailAI() {
     try {
       await localApi.delete(`/history_ai/delete/${id}`);
       alert("Data berhasil dihapus.");
-      navigate("/history");
+      navigate("/app/ai");
     } catch (err) {
       console.error("Gagal menghapus data:", err);
       alert("Gagal menghapus data.");
@@ -128,6 +156,7 @@ export default function DetailAI() {
           {renderSelect("Status Absen", "status_absen", [
             { value: "", label: "-- Pilih --" },
             { value: "hadir", label: "Hadir" },
+            { value: "terlambat", label: "terlambat" },
             { value: "tidak hadir", label: "Tidak Hadir" },
           ])}
           {renderSelect("Proses", "process", [

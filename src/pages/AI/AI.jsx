@@ -132,7 +132,7 @@ export default function DataAI() {
                 <p className="text-sm">Tanggal: {item.datetime}</p>
                 <p className="text-sm">Masuk: {item.jam_masuk_actual}</p>
                 <p className="text-sm">Kehadiran: {item.status_absen}</p>
-                <p className="text-sm">Keluar: {item.jam_keluar_actual}</p>
+                <p className="text-sm">pulang: {item.jam_keluar_actual}</p>
               </div>
             </Link>
           ))}

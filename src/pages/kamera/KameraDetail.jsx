@@ -33,7 +33,7 @@ export default function DetailKamera() {
 
   const handleSave = async () => {
     try {
-      const res = await localApi.put(`/history/update/${id}`, formData);
+      const res = await localApi.patch(`/history/update/${id}`, formData);
       setKameraData(res.data.data);
       setIsEditing(false);
       alert("Data berhasil diperbarui.");
