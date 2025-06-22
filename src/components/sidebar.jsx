@@ -15,27 +15,56 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   const [showModal, setShowModal] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("isLoggedIn");
     setShowModal(false);
     navigate("/login");
   };
 
   return (
     <>
-      <div className={`fixed bg-blue-800 text-white h-screen transition-all duration-300 flex flex-col justify-between ${collapsed ? "w-20" : "w-64"}`}>
+      <div
+        className={`fixed bg-blue-800 text-white h-screen transition-all duration-300 flex flex-col justify-between ${
+          collapsed ? "w-20" : "w-64"
+        }`}
+      >
         <div>
           <div className="p-4 border-b border-blue-600 flex justify-between items-center">
-            {!collapsed && <span className="text-xl font-bold">Absensi IoT</span>}
-            <button onClick={() => setCollapsed(!collapsed)} className="ml-2 text-white">
+            {!collapsed && (
+              <span className="text-xl font-bold">Absensi IoT</span>
+            )}
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="ml-2 text-white"
+            >
               <Menu size={20} />
             </button>
           </div>
 
           <nav className="flex flex-col p-4 space-y-2">
-            <NavItem to="/app/dashboard" icon={<LayoutDashboard size={18} />} label="Dashboard" collapsed={collapsed} />
-            <NavItem to="/app/kamera" icon={<Camera size={18} />} label="Data Kamera" collapsed={collapsed} />
-            <NavItem to="/app/ai" icon={<Brain size={18} />} label="Data AI" collapsed={collapsed} />
-            <NavItem to="/app/laporan" icon={<FileText size={18} />} label="Laporan" collapsed={collapsed} />
+            <NavItem
+              to="/app/dashboard"
+              icon={<LayoutDashboard size={18} />}
+              label="Dashboard"
+              collapsed={collapsed}
+            />
+            <NavItem
+              to="/app/kamera"
+              icon={<Camera size={18} />}
+              label="Data Kamera"
+              collapsed={collapsed}
+            />
+            <NavItem
+              to="/app/ai"
+              icon={<Brain size={18} />}
+              label="Data AI"
+              collapsed={collapsed}
+            />
+            <NavItem
+              to="/app/laporan"
+              icon={<FileText size={18} />}
+              label="Laporan"
+              collapsed={collapsed}
+            />
           </nav>
         </div>
 
@@ -60,7 +89,9 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               <X size={20} />
             </button>
             <h2 className="text-lg font-semibold mb-4">Konfirmasi Logout</h2>
-            <p className="mb-6 text-gray-700">Apakah kamu yakin ingin logout dari aplikasi?</p>
+            <p className="mb-6 text-gray-700">
+              Apakah kamu yakin ingin logout dari aplikasi?
+            </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowModal(false)}

@@ -4,17 +4,18 @@ import { useNavigate } from "react-router-dom";
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // ⬅️ untuk pesan error
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = (e) => {
     e.preventDefault();
 
     if (username === "admin" && password === "admin") {
-      setErrorMessage(""); // reset error jika sukses
-      navigate("/app/dashboard"); // ⬅️ arahkan ke dashboard
+      localStorage.setItem("isLoggedIn", "true");
+      setErrorMessage("");
+      navigate("/app/dashboard");
     } else {
-      setErrorMessage("Username atau password salah."); // ⬅️ tampilkan error
+      setErrorMessage("Username atau password salah.");
     }
   };
 

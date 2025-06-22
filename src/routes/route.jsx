@@ -1,6 +1,5 @@
 // routes/route.jsx
-import { createBrowserRouter } from "react-router-dom";
-import { Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Layout from "../components/layout";
 import Dashboard from "../pages/Dashboard";
 import KameraPage from "../pages/kamera/kamera";
@@ -9,6 +8,7 @@ import Laporan from "../pages/laporan/Laporan";
 import Login from "../pages/login";
 import Ai from "../pages/AI/AI";
 import DetailAI from "../pages/AI/AiDetail";
+import ProtectedRoute from "../components/protectedRoute";
 
 const router = createBrowserRouter([
   {
@@ -21,7 +21,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/app",
-    element: <Layout />,
+    element: (
+      <ProtectedRoute>
+        <Layout />
+      </ProtectedRoute>
+    ),
     children: [
       { path: "dashboard", element: <Dashboard /> },
       { path: "kamera", element: <KameraPage /> },
