@@ -50,7 +50,7 @@ export default function DetailKamera() {
     try {
       await localApi.delete(`/history/delete/${id}`);
       alert("Data berhasil dihapus.");
-      navigate("/kamera");
+      navigate("/app/kamera");
     } catch (err) {
       console.error("Gagal menghapus data:", err);
       alert("Gagal menghapus data.");

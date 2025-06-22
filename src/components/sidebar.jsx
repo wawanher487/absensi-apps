@@ -32,10 +32,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
           </div>
 
           <nav className="flex flex-col p-4 space-y-2">
-            <NavItem to="/dashboard" icon={<LayoutDashboard size={18} />} label="Dashboard" collapsed={collapsed} />
-            <NavItem to="/kamera" icon={<Camera size={18} />} label="Data Kamera" collapsed={collapsed} />
-            <NavItem to="/ai" icon={<Brain size={18} />} label="Data AI" collapsed={collapsed} />
-            <NavItem to="/laporan" icon={<FileText size={18} />} label="Laporan" collapsed={collapsed} />
+            <NavItem to="/app/dashboard" icon={<LayoutDashboard size={18} />} label="Dashboard" collapsed={collapsed} />
+            <NavItem to="/app/kamera" icon={<Camera size={18} />} label="Data Kamera" collapsed={collapsed} />
+            <NavItem to="/app/ai" icon={<Brain size={18} />} label="Data AI" collapsed={collapsed} />
+            <NavItem to="/app/laporan" icon={<FileText size={18} />} label="Laporan" collapsed={collapsed} />
           </nav>
         </div>
 

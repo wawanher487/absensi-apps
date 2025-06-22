@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { localApi } from "../api/axiosInstance";
 import { CameraIcon, BrainCircuit, UserCheck, AlarmClock } from "lucide-react";
+import dayjs from "dayjs";
 
 const DashboardPresensi = () => {
   const [stats, setStats] = useState({
@@ -10,33 +11,46 @@ const DashboardPresensi = () => {
     telat: 0,
   });
 
-  const [topEarly, setTopEarly] = useState([]); // ⬅️ Data 10 karyawan tercepat
-
+  const [topEarly, setTopEarly] = useState([]);
+  const [tanggal, setTanggal] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await localApi.get(`/history/get?page=1`);
+        const today = dayjs().format("DD-MM-YYYY");
+        setTanggal(today); // simpan tanggal untuk ditampilkan di UI
+
+        // Total dari kamera
+        const res = await localApi.get(`/history/get?tanggal=${today}`);
         const totalKamera = res.data.totalItems || 0;
 
-        const resaAi = await localApi.get(`/history_ai/get?page=1`);
+        // Total dari AI
+        const resaAi = await localApi.get(`/history_ai/get?tanggal=${today}`);
         const totalAI = resaAi.data.totalItems || 0;
 
-        // Ambil 5 data tercepat dari AI
-        const early = resaAi.data.data?.slice(0, 5) || [];
-        setTopEarly(early);
+        // Top 5 datang paling awal hari ini
+        const resTopEarly = await localApi.get(
+          `/history_ai/top_erly?tanggal=${today}`
+        );
+        const early = resTopEarly.data.data || [];
 
-        // Dummy hadir/telat
-        const totalHadir = 45;
-        const totalTelat = 13;
+        // Total dari Kehadiran dan keterlambatan dari endpoint baru
+        const resStatus = await localApi.get(
+          `/history_ai/status_kehadiran?tanggal=${today}`
+        );
+        const totalHadir = resStatus.data?.data?.totalHadir || 0;
+        const totalTelat = resStatus.data?.data?.totalTelat || 0;
 
+        // Set state
         setStats({
           kamera: totalKamera,
           ai: totalAI,
           hadir: totalHadir,
           telat: totalTelat,
         });
+
+        setTopEarly(early);
       } catch (error) {
         console.error("Gagal memuat data statistik:", error);
       } finally {
@@ -78,6 +92,11 @@ const DashboardPresensi = () => {
 
   return (
     <div className="p-6 mt-12 bg-gray-100 min-h-screen">
+      {/* Tanggal Hari Ini */}
+      <h2 className="text-xl font-bold text-gray-800 mb-4">
+        Tanggal Kehadiran : {tanggal}
+      </h2>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {cards.map((card, index) => (
           <div
@@ -95,7 +114,7 @@ const DashboardPresensi = () => {
         ))}
       </div>
 
-      {/* 🔽 Tambahan: Daftar 5 Karyawan Tercepat */}
+      {/* 🔽 Daftar Karyawan Tercepat */}
       <div className="bg-white rounded-xl shadow p-6 border">
         <h3 className="text-lg font-semibold mb-4 text-gray-800">
           5 Karyawan Datang Paling Awal Hari Ini
@@ -112,24 +131,27 @@ const DashboardPresensi = () => {
               </tr>
             </thead>
             <tbody className="text-sm text-gray-700">
-              {topEarly.map((item, index) => (
-                <tr key={item.id} className="text-center">
-                  <td className="px-4 py-2 border">{index + 1}</td>
-                  <td className="px-4 py-2 border">{item.nama}</td>
-                  <td className="px-4 py-2 border">{item.datetime}</td>
-                  <td className="px-4 py-2 border capitalize">
-                    {item.status_absen}
-                  </td>
-                  <td className="px-4 py-2 border">
-                    <img
-                      src={`https://monja-file.pptik.id/v1/view?path=presensi/${item.gambar}`}
-                      alt={item.nama}
-                      className="h-10 w-10 object-cover rounded-full mx-auto"
-                    />
-                  </td>
-                </tr>
-              ))}
-              {topEarly.length === 0 && (
+              {topEarly.length > 0 ? (
+                topEarly.map((item, index) => (
+                  <tr key={item.id} className="text-center">
+                    <td className="px-4 py-2 border">{index + 1}</td>
+                    <td className="px-4 py-2 border">{item.nama}</td>
+                    <td className="px-4 py-2 border">
+                      {item.jam_masuk_actual}
+                    </td>
+                    <td className="px-4 py-2 border capitalize">
+                      {item.status_absen}
+                    </td>
+                    <td className="px-4 py-2 border">
+                      <img
+                        src={`https://monja-file.pptik.id/v1/view?path=presensi/${item.gambar}`}
+                        alt={item.nama}
+                        className="h-10 w-10 object-cover rounded-full mx-auto"
+                      />
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
                   <td colSpan="5" className="text-center py-4 text-gray-500">
                     Tidak ada data hadir hari ini.

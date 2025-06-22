@@ -4,16 +4,17 @@ import { useNavigate } from "react-router-dom";
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // ⬅️ untuk pesan error
   const navigate = useNavigate();
 
   const handleLogin = (e) => {
     e.preventDefault();
 
-    // (simulasi) validasi sederhana
-    if (username && password) {
-      navigate("/dashboard");
+    if (username === "admin" && password === "admin") {
+      setErrorMessage(""); // reset error jika sukses
+      navigate("/app/dashboard"); // ⬅️ arahkan ke dashboard
     } else {
-      alert("Username dan password harus diisi.");
+      setErrorMessage("Username atau password salah."); // ⬅️ tampilkan error
     }
   };
 
@@ -24,6 +25,11 @@ export default function LoginPage() {
           Login Absensi
         </h2>
         <form onSubmit={handleLogin} className="space-y-4">
+          {errorMessage && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-md text-sm">
+              {errorMessage}
+            </div>
+          )}
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">
               Username
@@ -31,7 +37,7 @@ export default function LoginPage() {
             <input
               type="text"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your email"
+              placeholder="Masukkan username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -44,7 +50,7 @@ export default function LoginPage() {
             <input
               type="password"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your password"
+              placeholder="Masukkan password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

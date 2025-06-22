@@ -8,32 +8,80 @@ export default function KameraPage() {
   const [dataKamera, setDataKamera] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [tanggal, setTanggal] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await localApi.get(`/history/get?page=${currentPage}`);
+        const params = new URLSearchParams();
+        params.append("page", currentPage);
+        if (tanggal) {
+          // Format tanggal ke DD-MM-YYYY
+          const [yyyy, mm, dd] = tanggal.split("-");
+          params.append("tanggal", `${dd}-${mm}-${yyyy}`);
+        }
+
+        const res = await localApi.get(`/history/get?${params.toString()}`);
         if (Array.isArray(res.data?.data)) {
           setDataKamera(res.data.data);
           setTotalPages(res.data.totalPages || 1);
+          setErrorMessage("");
         } else {
-          console.error("Data bukan array:", res.data);
           setDataKamera([]);
+          setErrorMessage("Data tidak ditemukan.");
         }
       } catch (err) {
-        console.error("Gagal fetch kamera:", err);
+        const msg = err?.response?.data?.message || "Gagal memuat data kamera.";
         setDataKamera([]);
+        setErrorMessage(msg);
       }
     };
     fetchData();
-  }, [currentPage]);
+  }, [currentPage, tanggal]);
 
   const currentItems = dataKamera;
+
+  const handleReset = () => {
+    setTanggal("");
+    setCurrentPage(1);
+  };
 
   return (
     <div className="p-5 bg-gray-100 min-h-screen">
       <h1 className="text-2xl font-bold mb-6">Data Kamera</h1>
 
+      {/* 🔍 Fitur Pencarian Tanggal */}
+      <div className="mb-6">
+        <label className="block mb-2 font-medium text-gray-700">
+          Cari Berdasarkan Tanggal:
+        </label>
+        <input
+          type="date"
+          className="px-4 py-2 border rounded-md w-full sm:w-64 shadow-sm"
+          value={tanggal}
+          onChange={(e) => {
+            setTanggal(e.target.value);
+            setCurrentPage(1); // Reset ke halaman 1 saat tanggal berubah
+          }}
+        />
+
+        <button
+          onClick={handleReset}
+          className="ml-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+        >
+          Reset
+        </button>
+      </div>
+
+      {/* ❌ Pesan Error Jika Tidak Ada Data */}
+      {errorMessage && (
+        <div className="bg-red-100 text-red-700 px-4 py-2 mb-4 rounded-md">
+          {errorMessage}
+        </div>
+      )}
+
+      {/* ✅ Grid Data Kamera */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-6">
         {currentItems.map((kamera, index) => (
           <Link to={`${kamera.id}`} key={kamera.id || index}>
@@ -58,13 +106,16 @@ export default function KameraPage() {
         ))}
       </div>
 
-      <div className="flex justify-center">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      </div>
+      {/* 📄 Pagination */}
+      {!errorMessage && dataKamera.length > 0 && totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      )}
     </div>
   );
 }
