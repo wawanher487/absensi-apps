@@ -7,3 +7,10 @@ export const localApi = axios.create({
   },
 });
 
+// export const localApi = axios.create({
+//   baseURL: 'https://api-human-detection.pptik.id/',
+//   headers: {
+//     "Content-Type": "application/json",
+//   },
+// });
+

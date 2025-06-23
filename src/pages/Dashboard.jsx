@@ -17,45 +17,49 @@ const DashboardPresensi = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
+      const today = dayjs().format("DD-MM-YYYY");
+      setTanggal(today);
+
       try {
-        const today = dayjs().format("DD-MM-YYYY");
-        setTanggal(today); // simpan tanggal untuk ditampilkan di UI
-
-        // Total dari kamera
         const res = await localApi.get(`/history/get?tanggal=${today}`);
-        const totalKamera = res.data.totalItems || 0;
+        setStats((prev) => ({ ...prev, kamera: res.data.totalItems || 0 }));
+      } catch (err) {
+        console.error("Gagal memuat total kamera:", err);
+      }
 
-        // Total dari AI
-        const resaAi = await localApi.get(`/history_ai/get?tanggal=${today}`);
-        const totalAI = resaAi.data.totalItems || 0;
+      try {
+        const resAi = await localApi.get(`/history_ai/get?tanggal=${today}`);
+        setStats((prev) => ({ ...prev, ai: resAi.data.totalItems || 0 }));
+      } catch (err) {
+        console.error("Gagal memuat total AI:", err);
+      }
 
-        // Top 5 datang paling awal hari ini
-        const resTopEarly = await localApi.get(
+      try {
+        const resTop = await localApi.get(
           `/history_ai/top_erly?tanggal=${today}`
         );
-        const early = resTopEarly.data.data || [];
+        setTopEarly(resTop.data.data || []);
+      } catch (err) {
+        console.error("Gagal memuat data top datang paling awal:", err);
+      }
 
-        // Total dari Kehadiran dan keterlambatan dari endpoint baru
+      try {
         const resStatus = await localApi.get(
           `/history_ai/status_kehadiran?tanggal=${today}`
         );
         const totalHadir = resStatus.data?.data?.totalHadir || 0;
         const totalTelat = resStatus.data?.data?.totalTelat || 0;
 
-        // Set state
-        setStats({
-          kamera: totalKamera,
-          ai: totalAI,
+        setStats((prev) => ({
+          ...prev,
           hadir: totalHadir,
           telat: totalTelat,
-        });
-
-        setTopEarly(early);
-      } catch (error) {
-        console.error("Gagal memuat data statistik:", error);
-      } finally {
-        setLoading(false);
+        }));
+      } catch (err) {
+        console.error("Gagal memuat data kehadiran/telat:", err);
       }
+
+      setLoading(false);
     };
 
     fetchStats();
