@@ -158,6 +158,7 @@ export default function DetailAI() {
             { value: "hadir", label: "Hadir" },
             { value: "terlambat", label: "terlambat" },
             { value: "tidak hadir", label: "Tidak Hadir" },
+            { value: "tidak dikenali", label: "tidak dikenali" },
           ])}
           {renderSelect("Proses", "process", [
             { value: "done", label: "Selesai" },

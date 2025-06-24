@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { localApi } from "../../api/axiosInstance";
 import "react-datepicker/dist/react-datepicker.css";
-// import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import {
@@ -42,16 +41,12 @@ export default function Laporan() {
   useEffect(() => {
     const fetchChartData = async () => {
       setLoading(true);
-
       const tanggalList = getTanggalRange(chartRange);
       const start = tanggalList[0];
       const end = tanggalList[tanggalList.length - 1];
 
       try {
-        const res = await localApi.get(
-          `/history_ai/range?start=${start}&end=${end}`
-        );
-
+        const res = await localApi.get(`/history_ai/range?start=${start}&end=${end}`);
         const data = res.data.data || [];
         const grouped = {};
 
@@ -60,13 +55,17 @@ export default function Laporan() {
           if (!grouped[tanggal]) {
             grouped[tanggal] = {
               hadir: 0,
-              telat: 0,
+              terlambat: 0,
               jamMasuk: [],
               jamKeluar: [],
             };
           }
-          if (item.status_absen === "hadir") grouped[tanggal].hadir += 1;
-          grouped[tanggal].telat += item.jumlah_telat || 0;
+
+          if (item.status_absen === "hadir") {
+            grouped[tanggal].hadir += 1;
+          } else if (item.status_absen === "terlambat") {
+            grouped[tanggal].terlambat += 1;
+          }
 
           if (item.jam_masuk_actual) {
             const [h, m] = item.jam_masuk_actual.split(":").map(Number);
@@ -83,18 +82,12 @@ export default function Laporan() {
           return {
             tanggal: tgl,
             hadir: data?.hadir || 0,
-            telat: data?.telat || 0,
+            terlambat: data?.terlambat || 0,
             avgMasuk: data?.jamMasuk?.length
-              ? (
-                  data.jamMasuk.reduce((a, b) => a + b, 0) /
-                  data.jamMasuk.length
-                ).toFixed(2)
+              ? (data.jamMasuk.reduce((a, b) => a + b, 0) / data.jamMasuk.length).toFixed(2)
               : null,
             avgKeluar: data?.jamKeluar?.length
-              ? (
-                  data.jamKeluar.reduce((a, b) => a + b, 0) /
-                  data.jamKeluar.length
-                ).toFixed(2)
+              ? (data.jamKeluar.reduce((a, b) => a + b, 0) / data.jamKeluar.length).toFixed(2)
               : null,
           };
         });
@@ -110,33 +103,9 @@ export default function Laporan() {
     fetchChartData();
   }, [chartRange]);
 
-  // const exportExcel = () => {
-  //   const formattedData = chartData.map((item) => ({
-  //     Tanggal: item.tanggal,
-  //     Hadir: item.hadir,
-  //     Terlambat: item.telat,
-  //     "Rata-rata Jam Masuk": item.avgMasuk
-  //       ? `${String(Math.floor(item.avgMasuk)).padStart(2, "0")}:${String(
-  //           Math.round((item.avgMasuk % 1) * 60)
-  //         ).padStart(2, "0")}`
-  //       : "-",
-  //     "Rata-rata Jam Keluar": item.avgKeluar
-  //       ? `${String(Math.floor(item.avgKeluar)).padStart(2, "0")}:${String(
-  //           Math.round((item.avgKeluar % 1) * 60)
-  //         ).padStart(2, "0")}`
-  //       : "-",
-  //   }));
-
-  //   const worksheet = XLSX.utils.json_to_sheet(formattedData);
-  //   const workbook = XLSX.utils.book_new();
-  //   XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Kehadiran");
-  //   XLSX.writeFile(workbook, "laporan_kehadiran.xlsx");
-  // };
-
   const exportPDF = async () => {
     const pdf = new jsPDF("p", "pt", "a4");
 
-    // Header: teks di tengah
     const pageWidth = pdf.internal.pageSize.getWidth();
     const title = "Laporan Kehadiran";
     pdf.setFontSize(16);
@@ -144,11 +113,9 @@ export default function Laporan() {
     const x = (pageWidth - textWidth) / 2;
     pdf.text(title, x, 40);
 
-    // Ambil elemen grafik
     const grafik1 = document.getElementById("grafik-1");
     const grafik2 = document.getElementById("grafik-2");
 
-    // Render grafik ke canvas
     const canvas1 = await html2canvas(grafik1, {
       scale: 2,
       backgroundColor: "#fff",
@@ -158,15 +125,12 @@ export default function Laporan() {
       backgroundColor: "#fff",
     });
 
-    // Konversi ke gambar
     const img1 = canvas1.toDataURL("image/png");
     const img2 = canvas2.toDataURL("image/png");
 
-    // Tambahkan gambar ke PDF
     pdf.addImage(img1, "PNG", 40, 60, 500, 200);
     pdf.addImage(img2, "PNG", 40, 280, 500, 200);
 
-    // Tambahkan tanggal ke nama file
     const today = new Date();
     const dd = String(today.getDate()).padStart(2, "0");
     const mm = String(today.getMonth() + 1).padStart(2, "0");
@@ -194,12 +158,6 @@ export default function Laporan() {
           </select>
         </div>
         <div className="flex gap-2">
-          {/* <button
-            onClick={exportExcel}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
-          >
-            Export Excel
-          </button> */}
           <button
             onClick={exportPDF}
             className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
@@ -218,7 +176,7 @@ export default function Laporan() {
             <Tooltip />
             <Legend />
             <Bar dataKey="hadir" fill="#4CAF50" name="Hadir" />
-            <Bar dataKey="telat" fill="#F44336" name="Terlambat" />
+            <Bar dataKey="terlambat" fill="#F44336" name="Terlambat" />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -235,9 +193,7 @@ export default function Laporan() {
               tickFormatter={(value) => {
                 const hours = Math.floor(value);
                 const minutes = Math.round((value - hours) * 60);
-                return `${String(hours).padStart(2, "0")}:${String(
-                  minutes
-                ).padStart(2, "0")}`;
+                return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
               }}
             />
             <Tooltip
@@ -245,24 +201,14 @@ export default function Laporan() {
                 if (typeof value === "number") {
                   const hours = Math.floor(value);
                   const minutes = Math.round((value - hours) * 60);
-                  return `${String(hours).padStart(2, "0")}:${String(
-                    minutes
-                  ).padStart(2, "0")}`;
+                  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
                 }
                 return value;
               }}
             />
             <Legend />
-            <Bar
-              dataKey="avgMasuk"
-              fill="#2196F3"
-              name="Jam Masuk (Rata-rata)"
-            />
-            <Bar
-              dataKey="avgKeluar"
-              fill="#FF9800"
-              name="Jam Keluar (Rata-rata)"
-            />
+            <Bar dataKey="avgMasuk" fill="#2196F3" name="Jam Masuk (Rata-rata)" />
+            <Bar dataKey="avgKeluar" fill="#FF9800" name="Jam Keluar (Rata-rata)" />
           </BarChart>
         </ResponsiveContainer>
       </div>
