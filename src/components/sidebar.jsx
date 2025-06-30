@@ -9,6 +9,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { BsPerson } from "react-icons/bs";
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const navigate = useNavigate();
@@ -63,6 +64,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               to="/app/laporan"
               icon={<FileText size={18} />}
               label="Laporan"
+              collapsed={collapsed}
+            />
+            <NavItem
+              to="/app/karyawan"
+              icon={<BsPerson size={18} />}
+              label="karyawan"
               collapsed={collapsed}
             />
           </nav>

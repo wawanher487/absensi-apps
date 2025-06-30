@@ -1,7 +1,8 @@
-// import tetap
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { localApi } from "../../api/axiosInstance";
+import DeleteConfirmModal from "../../components/DeleteConfirmModal";
+import { toast } from "react-toastify";
 
 export default function DetailAI() {
   const { id } = useParams();
@@ -10,6 +11,7 @@ export default function DetailAI() {
   const [aiData, setAiData] = useState(null);
   const [formData, setFormData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -72,15 +74,20 @@ export default function DetailAI() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm("Yakin ingin menghapus data ini?")) return;
+  const handleDelete = () => {
+    setConfirmDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
     try {
-      await localApi.delete(`/history_ai/delete/${id}`);
-      alert("Data berhasil dihapus.");
+      await localApi.delete(`/history_ai/delete/${confirmDeleteId}`);
+      toast.success("Berhasil update data.");
       navigate("/app/ai");
-    } catch (err) {
-      console.error("Gagal menghapus data:", err);
-      alert("Gagal menghapus data.");
+    } catch (error) {
+      console.error("Gagal menghapus data history:", error);
+      toast.error("Gagal mengambil data.");
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -88,7 +95,6 @@ export default function DetailAI() {
     return <div className="p-6">Memuat detail data AI...</div>;
   }
 
-  // Fungsi untuk menampilkan field dengan edit mode
   const renderField = (label, name, type = "text") => (
     <div>
       <strong>{label}:</strong>{" "}
@@ -106,7 +112,6 @@ export default function DetailAI() {
     </div>
   );
 
-  // Fungsi untuk dropdown
   const renderSelect = (label, name, options) => (
     <div>
       <strong>{label}:</strong>{" "}
@@ -142,7 +147,6 @@ export default function DetailAI() {
       </div>
 
       <div className="bg-white rounded shadow p-8 flex flex-col md:flex-row gap-10 items-start">
-        {/* Form */}
         <div className="flex-1 text-base space-y-3">
           {renderField("Nama", "nama")}
           {renderField("Device", "guid_device")}
@@ -156,9 +160,9 @@ export default function DetailAI() {
           {renderSelect("Status Absen", "status_absen", [
             { value: "", label: "-- Pilih --" },
             { value: "hadir", label: "Hadir" },
-            { value: "terlambat", label: "terlambat" },
+            { value: "terlambat", label: "Terlambat" },
             { value: "tidak hadir", label: "Tidak Hadir" },
-            { value: "tidak dikenali", label: "tidak dikenali" },
+            { value: "tidak dikenali", label: "Tidak Dikenali" },
           ])}
           {renderSelect("Proses", "process", [
             { value: "done", label: "Selesai" },
@@ -166,7 +170,6 @@ export default function DetailAI() {
           ])}
           {renderField("Tanggal & Waktu", "datetime")}
 
-          {/* Tombol */}
           <div className="flex gap-4 mt-4 flex-wrap">
             {isEditing ? (
               <>
@@ -205,7 +208,6 @@ export default function DetailAI() {
           </div>
         </div>
 
-        {/* Gambar */}
         <div className="w-full md:w-[400px] h-auto flex justify-center items-center">
           {aiData.gambar ? (
             <img
@@ -220,6 +222,14 @@ export default function DetailAI() {
           )}
         </div>
       </div>
+
+      {/* Modal konfirmasi hapus */}
+      <DeleteConfirmModal
+        isOpen={!!confirmDeleteId}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={confirmDelete}
+        message="Apakah Anda yakin ingin menghapus data AI ini?"
+      />
     </div>
   );
 }

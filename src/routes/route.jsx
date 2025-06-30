@@ -9,6 +9,8 @@ import Login from "../pages/login";
 import Ai from "../pages/AI/AI";
 import DetailAI from "../pages/AI/AiDetail";
 import ProtectedRoute from "../components/protectedRoute";
+import Karyawan from "../pages/karyawan/Karyawan";
+import DetailKaryawan from "../pages/karyawan/DetailKaryawan";
 
 const router = createBrowserRouter([
   {
@@ -33,6 +35,8 @@ const router = createBrowserRouter([
       { path: "laporan", element: <Laporan /> },
       { path: "ai", element: <Ai /> },
       { path: "ai/:id", element: <DetailAI /> },
+      { path: "karyawan", element: <Karyawan/> },
+      { path: "karyawan/:id", element: <DetailKaryawan/> }
     ],
   },
 ]);

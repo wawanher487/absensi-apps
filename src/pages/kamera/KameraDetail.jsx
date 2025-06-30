@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { localApi } from "../../api/axiosInstance";
+import DeleteConfirmModal from "../../components/DeleteConfirmModal";
+import { toast } from "react-toastify";
 
 export default function DetailKamera() {
   const { id } = useParams();
@@ -9,6 +11,7 @@ export default function DetailKamera() {
   const [kameraData, setKameraData] = useState(null);
   const [formData, setFormData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null); 
 
   useEffect(() => {
     const fetchDetailKamera = async () => {
@@ -43,17 +46,20 @@ export default function DetailKamera() {
     }
   };
 
-  const handleDelete = async () => {
-    const confirmDelete = window.confirm("Yakin ingin menghapus data ini?");
-    if (!confirmDelete) return;
+  const handleDelete = () => {
+    setConfirmDeleteId(id); // Buka modal
+  };
 
+  const confirmDelete = async () => {
     try {
-      await localApi.delete(`/history/delete/${id}`);
-      alert("Data berhasil dihapus.");
-      navigate("/app/kamera");
-    } catch (err) {
-      console.error("Gagal menghapus data:", err);
-      alert("Gagal menghapus data.");
+      await localApi.delete(`/history/delete/${confirmDeleteId}`);
+      toast.success("Berhasil update data.");
+      navigate("/app/kamera"); // Setelah hapus, kembali ke halaman list
+    } catch (error) {
+      console.error("Gagal menghapus data history:", error);
+      toast.error("Gagal mengambil data.");
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -74,7 +80,6 @@ export default function DetailKamera() {
       </div>
 
       <div className="bg-white rounded shadow p-8 flex flex-col md:flex-row gap-10 items-start">
-        {/* Info Kamera */}
         <div className="flex-1 text-lg space-y-4">
           <div>
             <span className="font-semibold">ID:</span> {kameraData.id}
@@ -144,7 +149,6 @@ export default function DetailKamera() {
             )}
           </div>
 
-          {/* Tombol aksi */}
           <div className="flex gap-4 mt-4 flex-wrap">
             {isEditing ? (
               <>
@@ -166,12 +170,6 @@ export default function DetailKamera() {
               </>
             ) : (
               <>
-                {/* <button
-                  onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Edit Data
-                </button> */}
                 <button
                   onClick={handleDelete}
                   className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
@@ -183,7 +181,6 @@ export default function DetailKamera() {
           </div>
         </div>
 
-        {/* Gambar */}
         <div className="w-full md:w-[400px] h-auto flex justify-center items-center">
           {kameraData.gambar ? (
             <img
@@ -198,6 +195,14 @@ export default function DetailKamera() {
           )}
         </div>
       </div>
+
+      {/*  Modal konfirmasi hapus */}
+      <DeleteConfirmModal
+        isOpen={!!confirmDeleteId}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={confirmDelete}
+        message="Apakah Anda yakin ingin menghapus data kamera ini?"
+      />
     </div>
   );
 }
