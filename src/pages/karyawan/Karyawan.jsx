@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { localApi } from "../../api/axiosInstance";
 import EditKaryawan from "./EditKaryawan";
+import TambahKaryawan from "./TambahKaryawan";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import { toast } from "react-toastify";
 
@@ -10,13 +11,28 @@ const Karyawan = () => {
   const [selectedKaryawan, setSelectedKaryawan] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [showTambahModal, setShowTambahModal] = useState(false);
+
+  const [filterNama, setFilterNama] = useState("");
+  const [filterUnit, setFilterUnit] = useState("");
+  const [filterNip, setFilterNip] = useState("");
+  const [unitOptions, setUnitOptions] = useState([]);
 
   const navigate = useNavigate();
 
   const fetchKaryawan = async () => {
     try {
-      const res = await localApi.get("/karyawan/get");
+      const params = new URLSearchParams();
+      if (filterNama) params.append("nama", filterNama);
+      if (filterUnit) params.append("unit", filterUnit);
+      if (filterNip) params.append("nip", filterNip);
+
+      const res = await localApi.get(`/karyawan/get?${params.toString()}`);
       setKaryawans(res.data.data);
+
+      // Set unit options dari data karyawan
+      const uniqueUnits = [...new Set(res.data.data.map((k) => k.unit))];
+      setUnitOptions(uniqueUnits);
     } catch (error) {
       console.error("Gagal ambil data karyawan:", error);
     }
@@ -39,7 +55,7 @@ const Karyawan = () => {
     try {
       await localApi.delete(`/karyawan/delete/${confirmDeleteId}`);
       toast.success("Berhasil update data.");
-      fetchKaryawan(); // Refresh data
+      fetchKaryawan();
     } catch (error) {
       console.error("Gagal hapus karyawan:", error);
       toast.error("Gagal mengambil data.");
@@ -52,29 +68,48 @@ const Karyawan = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Data Karyawan</h2>
-        <button className="bg-blue-700 text-white px-4 py-2 rounded">
+        <button
+          onClick={() => navigate("/app/karyawan/tambah")}
+          className="bg-blue-700 text-white px-4 py-2 rounded"
+        >
           + Tambah Karyawan
         </button>
       </div>
-
       {/* Tabel Filter */}
-      <div className="flex gap-2 mb-4">
-        <select className="border px-3 py-2 rounded">
-          <option>Pilih Divisi</option>
-        </select>
-        <select className="border px-3 py-2 rounded">
-          <option>Pilih Jabatan</option>
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <select
+          className="border px-3 py-2 rounded"
+          value={filterUnit}
+          onChange={(e) => setFilterUnit(e.target.value)}
+        >
+          <option value="">Pilih Unit</option>
+          {unitOptions.map((unit) => (
+            <option key={unit} value={unit}>
+              {unit}
+            </option>
+          ))}
         </select>
         <input
           type="text"
-          placeholder="Cari..."
+          placeholder="Cari Nama..."
           className="border px-3 py-2 rounded w-60"
+          value={filterNama}
+          onChange={(e) => setFilterNama(e.target.value)}
         />
-        <button className="bg-blue-700 text-white px-4 py-2 rounded">
+        {/* <input
+          type="text"
+          placeholder="Cari NIP..."
+          className="border px-3 py-2 rounded w-60"
+          value={filterNip}
+          onChange={(e) => setFilterNip(e.target.value)}
+        /> */}
+        <button
+          onClick={fetchKaryawan}
+          className="bg-blue-700 text-white px-4 py-2 rounded"
+        >
           Cari
         </button>
       </div>
-
       {/* Tabel Data */}
       <div className="overflow-x-auto bg-white rounded-lg shadow">
         <table className="min-w-full divide-y divide-gray-200 text-sm text-left">
@@ -120,7 +155,7 @@ const Karyawan = () => {
                       }}
                       className="bg-red-600 text-white px-4 py-1 rounded font-medium"
                     >
-                      Delete
+                      Hapus
                     </button>
                   </div>
                 </td>
@@ -136,7 +171,6 @@ const Karyawan = () => {
           </tbody>
         </table>
       </div>
-
       {/* Modal Edit */}
       {showModal && selectedKaryawan && (
         <EditKaryawan
@@ -148,7 +182,16 @@ const Karyawan = () => {
           }}
         />
       )}
-
+      {/* Modal Tambah */}
+      {showTambahModal && (
+        <TambahKaryawan
+          onClose={() => setShowTambahModal(false)}
+          onSuccess={() => {
+            fetchKaryawan();
+            setShowTambahModal(false);
+          }}
+        />
+      )}
       {/* Delete Confirm Modal */}
       <DeleteConfirmModal
         isOpen={!!confirmDeleteId}

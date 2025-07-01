@@ -11,6 +11,7 @@ import DetailAI from "../pages/AI/AiDetail";
 import ProtectedRoute from "../components/protectedRoute";
 import Karyawan from "../pages/karyawan/Karyawan";
 import DetailKaryawan from "../pages/karyawan/DetailKaryawan";
+import TambahKaryawan from "../pages/karyawan/TambahKaryawan";
 
 const router = createBrowserRouter([
   {
@@ -35,8 +36,9 @@ const router = createBrowserRouter([
       { path: "laporan", element: <Laporan /> },
       { path: "ai", element: <Ai /> },
       { path: "ai/:id", element: <DetailAI /> },
-      { path: "karyawan", element: <Karyawan/> },
-      { path: "karyawan/:id", element: <DetailKaryawan/> }
+      { path: "karyawan", element: <Karyawan /> },
+      { path: "karyawan/tambah", element: <TambahKaryawan /> },
+      { path: "karyawan/:id", element: <DetailKaryawan /> },
     ],
   },
 ]);

@@ -17,6 +17,14 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
 
   useEffect(() => {
     if (karyawan) {
+      let birthDate = "";
+      if (karyawan.birthDate) {
+        const parsed = new Date(karyawan.birthDate);
+        if (!isNaN(parsed.getTime())) {
+          birthDate = parsed.toISOString().split("T")[0]; // format: yyyy-mm-dd
+        }
+      }
+
       setFormData({
         nama: karyawan.nama || "",
         nip: karyawan.nip || "",
@@ -24,7 +32,7 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
         address: karyawan.address || "",
         jabatan: karyawan.jabatan || "",
         unit: karyawan.unit || "",
-        birthDate: karyawan.birthDate || "",
+        birthDate,
         gender: karyawan.gender || "",
         gajiHarian: karyawan.gajiHarian || 0,
         status: karyawan.status ?? true,
@@ -33,28 +41,11 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
   }, [karyawan]);
 
   const handleChange = (e) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
 
     if (["phoneNumber", "nip"].includes(name)) {
-      const onlyNumbers = value.replace(/\D/g, ""); // Hapus non-angka
+      const onlyNumbers = value.replace(/\D/g, "");
       setFormData((prev) => ({ ...prev, [name]: onlyNumbers }));
-      return;
-    }
-
-    if (name === "birthDate") {
-      const onlyNumbers = value.replace(/\D/g, "").slice(0, 8); // Max 8 angka
-      let formatted = onlyNumbers;
-
-      if (onlyNumbers.length >= 5) {
-        formatted = `${onlyNumbers.slice(0, 2)}-${onlyNumbers.slice(
-          2,
-          4
-        )}-${onlyNumbers.slice(4)}`;
-      } else if (onlyNumbers.length >= 3) {
-        formatted = `${onlyNumbers.slice(0, 2)}-${onlyNumbers.slice(2)}`;
-      }
-
-      setFormData((prev) => ({ ...prev, birthDate: formatted }));
       return;
     }
 
@@ -75,12 +66,6 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validasi sederhana
-    if (!formData.birthDate.match(/^\d{2}-\d{2}-\d{4}$/)) {
-      alert("Format tanggal lahir harus DD-MM-YYYY");
-      return;
-    }
 
     const payload = {
       ...formData,
@@ -104,13 +89,9 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-[600px] max-h-[90vh] overflow-y-auto p-6">
-        <h2 className="text-xl font-semibold mb-6 border-b pb-2">
-          Edit Karyawan
-        </h2>
-        <form
-          onSubmit={handleSubmit}
-          className="grid grid-cols-2 gap-4 text-sm"
-        >
+        <h2 className="text-xl font-semibold mb-6 border-b pb-2">Edit Karyawan</h2>
+        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 text-sm">
+          {/* Nama */}
           <div className="flex flex-col">
             <label className="mb-1 font-medium">Nama</label>
             <input
@@ -123,6 +104,7 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
             />
           </div>
 
+          {/* NIP */}
           <div className="flex flex-col">
             <label className="mb-1 font-medium">NIP</label>
             <input
@@ -135,6 +117,7 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
             />
           </div>
 
+          {/* Telepon */}
           <div className="flex flex-col">
             <label className="mb-1 font-medium">Nomor Telepon</label>
             <input
@@ -146,18 +129,19 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
             />
           </div>
 
+          {/* Tanggal Lahir */}
           <div className="flex flex-col">
             <label className="mb-1 font-medium">Tanggal Lahir</label>
             <input
-              type="text"
+              type="date"
               name="birthDate"
               value={formData.birthDate}
               onChange={handleChange}
-              placeholder="DD-MM-YYYY"
               className="border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-blue-300"
             />
           </div>
 
+          {/* Unit */}
           <div className="flex flex-col">
             <label className="mb-1 font-medium">Unit</label>
             <input
@@ -169,6 +153,7 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
             />
           </div>
 
+          {/* Jabatan */}
           <div className="flex flex-col">
             <label className="mb-1 font-medium">Jabatan</label>
             <input
@@ -180,6 +165,7 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
             />
           </div>
 
+          {/* Gaji Harian */}
           <div className="flex flex-col">
             <label className="mb-1 font-medium">Gaji Harian</label>
             <input
@@ -192,6 +178,7 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
             />
           </div>
 
+          {/* Status */}
           <div className="flex flex-col">
             <label className="mb-1 font-medium">Status Aktif</label>
             <select
@@ -205,6 +192,7 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
             </select>
           </div>
 
+          {/* Alamat */}
           <div className="col-span-2 flex flex-col">
             <label className="mb-1 font-medium">Alamat</label>
             <input
@@ -216,6 +204,7 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
             />
           </div>
 
+          {/* Gender */}
           <div className="col-span-2">
             <label className="mb-2 font-medium">Jenis Kelamin</label>
             <div className="flex gap-6">
@@ -244,6 +233,7 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
             </div>
           </div>
 
+          {/* Tombol */}
           <div className="col-span-2 flex justify-end gap-3 mt-6">
             <button
               type="button"
