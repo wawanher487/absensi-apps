@@ -1,10 +1,13 @@
 import axios from "axios";
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
 export const localApi = axios.create({
-  baseURL: 'http://192.168.143.231:4000',
+  baseURL: baseURL,
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 // export const localApi = axios.create({
@@ -13,4 +16,3 @@ export const localApi = axios.create({
 //     "Content-Type": "application/json",
 //   },
 // });
-

@@ -150,7 +150,7 @@ export default function DetailAI() {
         <div className="flex-1 text-base space-y-3">
           {renderField("Nama", "nama")}
           {renderField("Device", "guid_device")}
-          {renderField("Unit", "unit")}
+          {/* {renderField("Unit", "unit")} */}
           {renderField("Jam Masuk", "jam_masuk")}
           {renderField("Waktu Datang", "jam_masuk_actual")}
           {renderField("Jam Pulang", "jam_keluar")}
