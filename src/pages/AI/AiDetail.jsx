@@ -134,6 +134,15 @@ export default function DetailAI() {
     </div>
   );
 
+  const formatTelat = (menitTotal) => {
+    if (!menitTotal || isNaN(menitTotal)) return "-";
+    const jam = Math.floor(menitTotal / 60);
+    const menit = menitTotal % 60;
+    const jamStr = jam > 0 ? `${jam} jam` : "";
+    const menitStr = menit > 0 ? `${menit} menit` : "";
+    return [jamStr, menitStr].filter(Boolean).join(" ");
+  };
+
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="mb-4 flex justify-between items-center">
@@ -156,7 +165,21 @@ export default function DetailAI() {
           {renderField("Jam Pulang", "jam_keluar")}
           {renderField("Waktu Pulang", "jam_keluar_actual")}
           {renderField("Jumlah Telat", "jumlah_telat")}
-          {renderField("Total Jam Telat", "total_jam_telat")}
+          <div>
+            <strong>Keterlambatan:</strong>{" "}
+            {isEditing ? (
+              <input
+                type="number"
+                name="total_jam_telat"
+                value={formData.total_jam_telat || ""}
+                onChange={handleChange}
+                className="border px-2 py-1 rounded w-full mt-1"
+              />
+            ) : (
+              formatTelat(aiData.total_jam_telat)
+            )}
+          </div>
+
           {renderSelect("Status Absen", "status_absen", [
             { value: "", label: "-- Pilih --" },
             { value: "hadir", label: "Hadir" },
