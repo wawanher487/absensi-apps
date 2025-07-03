@@ -6,6 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { FiCalendar } from "react-icons/fi";
 import Pagination from "../../components/pagination";
 import axios from "axios";
+import { formatTanggalPendek } from "../../utils/date";
 
 export default function DataAI() {
   const [dataAI, setDataAI] = useState([]);
@@ -124,7 +125,9 @@ export default function DataAI() {
                   className="w-full h-40 object-cover rounded mb-2"
                 />
                 <p className="font-semibold">{item.nama}</p>
-                <p className="text-sm">Tanggal: {item.datetime}</p>
+                <p className="text-sm">
+                  Tanggal: {formatTanggalPendek(item.datetime)}
+                </p>
                 <p className="text-sm">Masuk: {item.jam_masuk_actual}</p>
                 <p className="text-sm">Kehadiran: {item.status_absen}</p>
                 <p className="text-sm">pulang: {item.jam_keluar_actual}</p>

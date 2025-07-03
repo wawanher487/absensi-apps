@@ -12,26 +12,37 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(isSameOrBefore); // << tambahkan ini
+dayjs().tz("Asia/Jakarta");
 
 const padZero = (n) => (n < 10 ? "0" + n : n);
 
 const getTanggalRange = (rangeType) => {
-  const end = new Date();
-  const start = new Date();
+  const end = dayjs().tz("Asia/Jakarta");
+  let start = end;
 
-  if (rangeType === "week") start.setDate(end.getDate() - 6);
-  else if (rangeType === "month") start.setMonth(end.getMonth() - 1);
-  else if (rangeType === "year") start.setFullYear(end.getFullYear() - 1);
+  if (rangeType === "week") start = end.subtract(6, "day");
+  else if (rangeType === "month") start = end.subtract(1, "month");
+  else if (rangeType === "year") start = end.subtract(1, "year");
 
   const dates = [];
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    const dd = padZero(d.getDate());
-    const mm = padZero(d.getMonth() + 1);
-    const yyyy = d.getFullYear();
-    dates.push(`${dd}-${mm}-${yyyy}`);
+  let current = start;
+  while (current.isSameOrBefore(end, "day")) {
+    dates.push(current.format("DD-MM-YYYY"));
+    current = current.add(1, "day");
   }
+
   return dates;
 };
+
+console.log("Tanggal Range:", getTanggalRange("week"));
 
 export default function Laporan() {
   const [chartData, setChartData] = useState([]);
@@ -46,12 +57,17 @@ export default function Laporan() {
       const end = tanggalList[tanggalList.length - 1];
 
       try {
-        const res = await localApi.get(`/history_ai/range?start=${start}&end=${end}`);
+        const res = await localApi.get(
+          `/history_ai/range?start=${start}&end=${end}`
+        );
         const data = res.data.data || [];
         const grouped = {};
 
         data.forEach((item) => {
-          const tanggal = item.datetime.split(" ")[0];
+          const tanggal = dayjs(item.datetime)
+            .tz("Asia/Jakarta")
+            .format("DD-MM-YYYY");
+
           if (!grouped[tanggal]) {
             grouped[tanggal] = {
               hadir: 0,
@@ -88,10 +104,16 @@ export default function Laporan() {
             hadir: data?.hadir || 0,
             terlambat: data?.terlambat || 0,
             avgMasuk: data?.jamMasuk?.length
-              ? (data.jamMasuk.reduce((a, b) => a + b, 0) / data.jamMasuk.length).toFixed(2)
+              ? (
+                  data.jamMasuk.reduce((a, b) => a + b, 0) /
+                  data.jamMasuk.length
+                ).toFixed(2)
               : null,
             avgKeluar: data?.jamKeluar?.length
-              ? (data.jamKeluar.reduce((a, b) => a + b, 0) / data.jamKeluar.length).toFixed(2)
+              ? (
+                  data.jamKeluar.reduce((a, b) => a + b, 0) /
+                  data.jamKeluar.length
+                ).toFixed(2)
               : null,
             hadirList: data?.hadirList || [],
             terlambatList: data?.terlambatList || [],
@@ -182,7 +204,10 @@ export default function Laporan() {
               tickFormatter={(v) => {
                 const h = Math.floor(v);
                 const m = Math.round((v - h) * 60);
-                return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+                return `${String(h).padStart(2, "0")}:${String(m).padStart(
+                  2,
+                  "0"
+                )}`;
               }}
             />
             <Tooltip />
@@ -194,13 +219,24 @@ export default function Laporan() {
       </div>
 
       <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-lg font-semibold mb-2">Detail Siapa yang Hadir & Terlambat</h2>
+        <h2 className="text-lg font-semibold mb-2">
+          Detail Siapa yang Hadir & Terlambat
+        </h2>
         {chartData.map((item) => (
           <div key={item.tanggal} className="mb-4 border-b pb-2">
             <p className="font-semibold">{item.tanggal}</p>
-            <p>✅ Hadir: {(item.hadirList?.length || 0) > 0 ? item.hadirList.join(", ") : "-"}</p>
-<p>⏰ Terlambat: {(item.terlambatList?.length || 0) > 0 ? item.terlambatList.join(", ") : "-"}</p>
-
+            <p>
+              ✅ Hadir:{" "}
+              {(item.hadirList?.length || 0) > 0
+                ? item.hadirList.join(", ")
+                : "-"}
+            </p>
+            <p>
+              ⏰ Terlambat:{" "}
+              {(item.terlambatList?.length || 0) > 0
+                ? item.terlambatList.join(", ")
+                : "-"}
+            </p>
           </div>
         ))}
       </div>

@@ -3,6 +3,7 @@ import { FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Pagination from "../../components/pagination";
 import { localApi } from "../../api/axiosInstance";
+import { formatTanggalPendek } from "../../utils/date";
 
 export default function KameraPage() {
   const [dataKamera, setDataKamera] = useState([]);
@@ -99,7 +100,7 @@ export default function KameraPage() {
               )}
               <p className="font-semibold">GUID: {kamera.guid_device}</p>
               <p className="text-sm text-gray-600">
-                Tanggal: {kamera.datetime}
+                Tanggal: {formatTanggalPendek(kamera.datetime)}
               </p>
             </div>
           </Link>

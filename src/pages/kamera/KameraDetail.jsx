@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { localApi } from "../../api/axiosInstance";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import { toast } from "react-toastify";
+import { formatTanggalWaktu, toDatetimeLocal } from "../../utils/date";
 
 export default function DetailKamera() {
   const { id } = useParams();
@@ -11,7 +12,7 @@ export default function DetailKamera() {
   const [kameraData, setKameraData] = useState(null);
   const [formData, setFormData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null); 
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   useEffect(() => {
     const fetchDetailKamera = async () => {
@@ -88,21 +89,22 @@ export default function DetailKamera() {
             <span className="font-semibold">Device:</span>{" "}
             {kameraData.guid_device}
           </div>
+
           <div>
-            <span className="font-semibold">Tanggal:</span>{" "}
+            <span className="font-semibold">Tanggal & Waktu:</span>{" "}
             {isEditing ? (
               <input
                 type="text"
                 name="datetime"
-                value={formData.datetime}
+                value={toDatetimeLocal(formData.datetime)}
                 onChange={handleChange}
                 className="border px-2 py-1 rounded w-full mt-1"
               />
             ) : (
-              kameraData.datetime
+              formatTanggalWaktu(kameraData.datetime)
             )}
           </div>
-          <div>
+          {/* <div>
             <span className="font-semibold">Status:</span>{" "}
             {isEditing ? (
               <select
@@ -124,9 +126,9 @@ export default function DetailKamera() {
             ) : (
               "Tidak Aktif"
             )}
-          </div>
+          </div> */}
           <div>
-            <span className="font-semibold">Proses:</span>{" "}
+            <span className="font-semibold">Proses AI:</span>{" "}
             {isEditing ? (
               <select
                 name="process"

@@ -16,6 +16,7 @@ import {
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import EditKaryawan from "./EditKaryawan";
 import { toast } from "react-toastify";
+import { formatTanggalSaja, toDatetimeLocal } from "../../utils/date";
 
 const DetailKaryawan = () => {
   const { id } = useParams();
@@ -163,7 +164,7 @@ const DetailKaryawan = () => {
         </div>
         <div className="flex gap-2 mt-4 lg:mt-0">
           <button
-            onClick={() => handleDelete(karyawan._id)}
+            onClick={() => handleDelete(karyawan.id)}
             className="bg-red-500 hover:bg-red-700 text-white px-4 py-1 rounded font-medium"
           >
             Hapus
@@ -294,13 +295,7 @@ const DetailKaryawan = () => {
             <tbody>
               {presensi.length > 0 ? (
                 presensi.slice(0, 30).map((p, i) => {
-                  const tanggal = new Date(
-                    ...p.datetime
-                      .split(" ")[0]
-                      .split("-")
-                      .reverse()
-                      .map((n, i) => (i === 1 ? Number(n) - 1 : Number(n)))
-                  );
+                  const tanggal = formatTanggalSaja(p.datetime);
                   const jamMasuk = p.jam_masuk_actual || "-";
                   const jamPulang = p.jam_keluar_actual || "-";
                   const status = p.status_absen;
@@ -309,15 +304,12 @@ const DetailKaryawan = () => {
                   return (
                     <tr key={i} className="border-t hover:bg-gray-50">
                       <td className="px-4 py-2">
-                        {tanggal.toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })}
+                        {tanggal}
                         <div className="text-xs text-gray-400">
                           Seharusnya: 08:00:00
                         </div>
                       </td>
+
                       <td className="px-4 py-2">{jamMasuk}</td>
                       <td className="px-4 py-2">{jamPulang}</td>
                       <td className="px-4 py-2">
