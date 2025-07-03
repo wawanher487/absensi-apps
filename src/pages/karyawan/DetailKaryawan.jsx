@@ -295,7 +295,11 @@ const DetailKaryawan = () => {
               {presensi.length > 0 ? (
                 presensi.slice(0, 30).map((p, i) => {
                   const tanggal = new Date(
-                    ...p.datetime.split(" ")[0].split("-").reverse().map(Number)
+                    ...p.datetime
+                      .split(" ")[0]
+                      .split("-")
+                      .reverse()
+                      .map((n, i) => (i === 1 ? Number(n) - 1 : Number(n)))
                   );
                   const jamMasuk = p.jam_masuk_actual || "-";
                   const jamPulang = p.jam_keluar_actual || "-";

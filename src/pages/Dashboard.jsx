@@ -14,6 +14,7 @@ const DashboardPresensi = () => {
   const [topEarly, setTopEarly] = useState([]);
   const [tanggal, setTanggal] = useState("");
   const [loading, setLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -118,46 +119,60 @@ const DashboardPresensi = () => {
         ))}
       </div>
 
-      {/* 🔽 Daftar Karyawan Tercepat */}
+      {/* 🔽 Daftar Karyawan yang hadir */}
       <div className="bg-white rounded-xl shadow p-6 border">
         <h3 className="text-lg font-semibold mb-4 text-gray-800">
-          5 Karyawan Datang Paling Awal Hari Ini
+          Daftar Kehadiran Hari Ini
         </h3>
         <div className="overflow-x-auto">
-          <table className="min-w-full table-auto border border-gray-200">
+          <table className="min-w-full table-auto border border-gray-200 rounded-xl overflow-hidden">
             <thead className="bg-gray-100 text-sm text-gray-600">
-              <tr>
-                <th className="px-4 py-2 border">No</th>
-                <th className="px-4 py-2 border">Nama</th>
-                <th className="px-4 py-2 border">Waktu Datang</th>
-                <th className="px-4 py-2 border">Status</th>
-                <th className="px-4 py-2 border">Foto</th>
+              <tr className="text-left">
+                <th className="px-6 py-3 border-b">No</th>
+                <th className="px-6 py-3 border-b">Nama</th>
+                <th className="px-6 py-3 border-b">Waktu Datang</th>
+                <th className="px-6 py-3 border-b">Status</th>
+                <th className="px-6 py-3 border-b text-center">Foto</th>
               </tr>
             </thead>
             <tbody className="text-sm text-gray-700">
               {topEarly.length > 0 ? (
                 topEarly.map((item, index) => (
-                  <tr key={item.id} className="text-center">
-                    <td className="px-4 py-2 border">{index + 1}</td>
-                    <td className="px-4 py-2 border">{item.nama}</td>
-                    <td className="px-4 py-2 border">
+                  <tr
+                    key={item.id}
+                    className="hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <td className="px-6 py-3 border-b">{index + 1}</td>
+                    <td className="px-6 py-3 border-b capitalize">
+                      {item.nama}
+                    </td>
+                    <td className="px-6 py-3 border-b">
                       {item.jam_masuk_actual}
                     </td>
-                    <td className="px-4 py-2 border capitalize">
+                    <td
+                      className={`px-6 py-3 capitalize font-medium ${
+                        item.status_absen === "terlambat"
+                          ? "text-red-600"
+                          : "text-green-600"
+                      }`}
+                      style={{ borderBottom: "1px solid #000000" }} // default Tailwind gray-200
+                    >
                       {item.status_absen}
                     </td>
-                    <td className="px-4 py-2 border">
-                      <img
-                        src={`https://monja-file.pptik.id/v1/view?path=presensi/${item.gambar}`}
-                        alt={item.nama}
-                        className="h-10 w-10 object-cover rounded-full mx-auto"
-                      />
+
+                    <td className="px-6 py-3 border-b text-center">
+                      <button
+                        onClick={() => setSelectedUser(item)}
+                        className="text-blue-600 hover:text-blue-800 hover:underline focus:outline-none"
+                      >
+                        Lihat Foto
+                      </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="text-center py-4 text-gray-500">
+                  <td colSpan="5" className="text-center py-6 text-gray-500">
                     Tidak ada data hadir hari ini.
                   </td>
                 </tr>
@@ -165,6 +180,28 @@ const DashboardPresensi = () => {
             </tbody>
           </table>
         </div>
+        {selectedUser && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg relative">
+              <button
+                onClick={() => setSelectedUser(null)}
+                className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
+              >
+                ✕
+              </button>
+              <h4 className="text-lg font-semibold mb-4 text-gray-800">
+                Detail Foto
+              </h4>
+              <div className="flex flex-col items-center space-y-3">
+                <img
+                  src={`https://monja-file.pptik.id/v1/view?path=presensi/${selectedUser.gambar}`}
+                  alt={selectedUser.nama}
+                  className="w-120 h-120 object-cover rounded-lg border"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

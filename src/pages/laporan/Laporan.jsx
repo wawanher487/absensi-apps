@@ -1,6 +1,6 @@
+// Laporan.jsx
 import { useEffect, useState } from "react";
 import { localApi } from "../../api/axiosInstance";
-import "react-datepicker/dist/react-datepicker.css";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import {
@@ -58,13 +58,17 @@ export default function Laporan() {
               terlambat: 0,
               jamMasuk: [],
               jamKeluar: [],
+              hadirList: [],
+              terlambatList: [],
             };
           }
 
           if (item.status_absen === "hadir") {
             grouped[tanggal].hadir += 1;
+            grouped[tanggal].hadirList.push(item.nama);
           } else if (item.status_absen === "terlambat") {
             grouped[tanggal].terlambat += 1;
+            grouped[tanggal].terlambatList.push(item.nama);
           }
 
           if (item.jam_masuk_actual) {
@@ -89,6 +93,8 @@ export default function Laporan() {
             avgKeluar: data?.jamKeluar?.length
               ? (data.jamKeluar.reduce((a, b) => a + b, 0) / data.jamKeluar.length).toFixed(2)
               : null,
+            hadirList: data?.hadirList || [],
+            terlambatList: data?.terlambatList || [],
           };
         });
 
@@ -105,25 +111,17 @@ export default function Laporan() {
 
   const exportPDF = async () => {
     const pdf = new jsPDF("p", "pt", "a4");
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
     const title = "Laporan Kehadiran";
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const x = (pageWidth - pdf.getTextWidth(title)) / 2;
     pdf.setFontSize(16);
-    const textWidth = pdf.getTextWidth(title);
-    const x = (pageWidth - textWidth) / 2;
     pdf.text(title, x, 40);
 
     const grafik1 = document.getElementById("grafik-1");
     const grafik2 = document.getElementById("grafik-2");
 
-    const canvas1 = await html2canvas(grafik1, {
-      scale: 2,
-      backgroundColor: "#fff",
-    });
-    const canvas2 = await html2canvas(grafik2, {
-      scale: 2,
-      backgroundColor: "#fff",
-    });
+    const canvas1 = await html2canvas(grafik1, { scale: 2 });
+    const canvas2 = await html2canvas(grafik2, { scale: 2 });
 
     const img1 = canvas1.toDataURL("image/png");
     const img2 = canvas2.toDataURL("image/png");
@@ -131,45 +129,36 @@ export default function Laporan() {
     pdf.addImage(img1, "PNG", 40, 60, 500, 200);
     pdf.addImage(img2, "PNG", 40, 280, 500, 200);
 
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2, "0");
-    const mm = String(today.getMonth() + 1).padStart(2, "0");
-    const yyyy = today.getFullYear();
-    const fileName = `laporan_kehadiran_${dd}-${mm}-${yyyy}.pdf`;
-
-    pdf.save(fileName);
+    pdf.save(`laporan_kehadiran.pdf`);
   };
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-2xl font-bold mb-6">Laporan</h1>
+      <h1 className="text-2xl font-bold mb-6">Laporan Kehadiran</h1>
 
-      <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
-        <div className="flex items-center gap-2">
-          <label className="text-gray-700 font-medium">Periode:</label>
-          <select
-            value={chartRange}
-            onChange={(e) => setChartRange(e.target.value)}
-            className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-          >
-            <option value="week">1 Minggu</option>
-            <option value="month">1 Bulan</option>
-            <option value="year">1 Tahun</option>
-          </select>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={exportPDF}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-          >
-            Export PDF
-          </button>
-        </div>
+      <div className="flex items-center gap-4 mb-4">
+        <label>Periode:</label>
+        <select
+          value={chartRange}
+          onChange={(e) => setChartRange(e.target.value)}
+          className="border px-3 py-2 rounded"
+        >
+          <option value="week">1 Minggu</option>
+          <option value="month">1 Bulan</option>
+          <option value="year">1 Tahun</option>
+        </select>
+
+        <button
+          onClick={exportPDF}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Export PDF
+        </button>
       </div>
 
       <div id="grafik-1" className="bg-white p-4 rounded shadow mb-6">
-        <h2 className="text-lg font-semibold mb-2">Status Kehadiran</h2>
-        <ResponsiveContainer width="100%" height={350}>
+        <h2 className="text-lg font-semibold mb-2">Grafik Kehadiran</h2>
+        <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData}>
             <XAxis dataKey="tanggal" />
             <YAxis />
@@ -181,36 +170,39 @@ export default function Laporan() {
         </ResponsiveContainer>
       </div>
 
-      <div id="grafik-2" className="bg-white p-4 rounded shadow">
+      <div id="grafik-2" className="bg-white p-4 rounded shadow mb-6">
         <h2 className="text-lg font-semibold mb-2">
-          Rata-rata Jam Masuk & Pulang (Format: Jam:Menit)
+          Rata-rata Jam Masuk & Pulang
         </h2>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData}>
             <XAxis dataKey="tanggal" />
             <YAxis
               domain={[6, 20]}
-              tickFormatter={(value) => {
-                const hours = Math.floor(value);
-                const minutes = Math.round((value - hours) * 60);
-                return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+              tickFormatter={(v) => {
+                const h = Math.floor(v);
+                const m = Math.round((v - h) * 60);
+                return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
               }}
             />
-            <Tooltip
-              formatter={(value) => {
-                if (typeof value === "number") {
-                  const hours = Math.floor(value);
-                  const minutes = Math.round((value - hours) * 60);
-                  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-                }
-                return value;
-              }}
-            />
+            <Tooltip />
             <Legend />
-            <Bar dataKey="avgMasuk" fill="#2196F3" name="Jam Masuk (Rata-rata)" />
-            <Bar dataKey="avgKeluar" fill="#FF9800" name="Jam Keluar (Rata-rata)" />
+            <Bar dataKey="avgMasuk" fill="#2196F3" name="Jam Masuk (Avg)" />
+            <Bar dataKey="avgKeluar" fill="#FF9800" name="Jam Pulang (Avg)" />
           </BarChart>
         </ResponsiveContainer>
+      </div>
+
+      <div className="bg-white p-4 rounded shadow">
+        <h2 className="text-lg font-semibold mb-2">Detail Siapa yang Hadir & Terlambat</h2>
+        {chartData.map((item) => (
+          <div key={item.tanggal} className="mb-4 border-b pb-2">
+            <p className="font-semibold">{item.tanggal}</p>
+            <p>✅ Hadir: {(item.hadirList?.length || 0) > 0 ? item.hadirList.join(", ") : "-"}</p>
+<p>⏰ Terlambat: {(item.terlambatList?.length || 0) > 0 ? item.terlambatList.join(", ") : "-"}</p>
+
+          </div>
+        ))}
       </div>
     </div>
   );
