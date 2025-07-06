@@ -3,202 +3,143 @@ import { useEffect, useState } from "react";
 import { localApi } from "../../api/axiosInstance";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import { toast } from "react-toastify";
-import { formatTanggalWaktu, toDatetimeLocal } from "../../utils/date";
+import { formatTanggalWaktu } from "../../utils/date";
+import { ArrowLeft, CameraOff, Calendar } from "lucide-react";
 
 export default function DetailKamera() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [kameraData, setKameraData] = useState(null);
-  const [formData, setFormData] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   useEffect(() => {
-    const fetchDetailKamera = async () => {
+    const fetchDetail = async () => {
       try {
         const res = await localApi.get(`/history/get/${id}`);
         if (res.data && res.data.data) {
           setKameraData(res.data.data);
-          setFormData(res.data.data);
         }
       } catch (err) {
         console.error("Gagal mengambil detail kamera:", err);
+        toast.error("Gagal memuat data kamera.");
       }
     };
 
-    fetchDetailKamera();
+    fetchDetail();
   }, [id]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = async () => {
-    try {
-      const res = await localApi.patch(`/history/update/${id}`, formData);
-      setKameraData(res.data.data);
-      setIsEditing(false);
-      alert("Data berhasil diperbarui.");
-    } catch (err) {
-      console.error("Gagal mengupdate data:", err);
-      alert("Gagal memperbarui data.");
-    }
-  };
-
-  const handleDelete = () => {
-    setConfirmDeleteId(id); // Buka modal
-  };
+  const handleDelete = () => setConfirmDeleteId(id);
 
   const confirmDelete = async () => {
     try {
       await localApi.delete(`/history/delete/${confirmDeleteId}`);
-      toast.success("Berhasil update data.");
-      navigate("/app/kamera"); // Setelah hapus, kembali ke halaman list
+      toast.success("Berhasil menghapus data.");
+      navigate("/app/kamera");
     } catch (error) {
       console.error("Gagal menghapus data history:", error);
-      toast.error("Gagal mengambil data.");
+      toast.error("Gagal menghapus data.");
     } finally {
       setConfirmDeleteId(null);
     }
   };
 
   if (!kameraData) {
-    return <div className="p-6">Memuat detail kamera...</div>;
+    return (
+      <div className="p-6 md:p-8 bg-slate-50 min-h-screen flex items-center justify-center">
+        <p className="text-slate-500">Memuat detail data kamera...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <div className="mb-4 flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Detail Kamera - {kameraData.id}</h1>
+    <div className="p-4 md:p-8 bg-slate-50 min-h-screen">
+      {/* Header */}
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
+            Detail Kamera
+          </h1>
+          <p className="text-sm text-slate-500">Informasi lengkap perangkat</p>
+        </div>
         <button
           onClick={() => navigate(-1)}
-          className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-sm rounded font-bold text-gray-800"
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 hover:bg-slate-100 text-sm rounded-md font-semibold text-slate-700 transition-colors"
         >
+          <ArrowLeft size={16} />
           Kembali
         </button>
       </div>
 
-      <div className="bg-white rounded shadow p-8 flex flex-col md:flex-row gap-10 items-start">
-        <div className="flex-1 text-lg space-y-4">
-          <div>
-            <span className="font-semibold">ID:</span> {kameraData.id}
-          </div>
-          <div>
-            <span className="font-semibold">Device:</span>{" "}
-            {kameraData.guid_device}
-          </div>
-
-          <div>
-            <span className="font-semibold">Tanggal & Waktu:</span>{" "}
-            {isEditing ? (
-              <input
-                type="text"
-                name="datetime"
-                value={toDatetimeLocal(formData.datetime)}
-                onChange={handleChange}
-                className="border px-2 py-1 rounded w-full mt-1"
-              />
-            ) : (
-              formatTanggalWaktu(kameraData.datetime)
-            )}
-          </div>
-          {/* <div>
-            <span className="font-semibold">Status:</span>{" "}
-            {isEditing ? (
-              <select
-                name="checkStatus"
-                value={formData.checkStatus}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    checkStatus: e.target.value === "true",
-                  }))
-                }
-                className="border px-2 py-1 rounded w-full mt-1"
-              >
-                <option value="true">Aktif</option>
-                <option value="false">Tidak Aktif</option>
-              </select>
-            ) : kameraData.checkStatus ? (
-              "Aktif"
-            ) : (
-              "Tidak Aktif"
-            )}
-          </div> */}
-          <div>
-            <span className="font-semibold">Proses AI:</span>{" "}
-            {isEditing ? (
-              <select
-                name="process"
-                value={formData.process}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    process: e.target.value === "true",
-                  }))
-                }
-                className="border px-2 py-1 rounded w-full mt-1"
-              >
-                <option value="true">Sudah</option>
-                <option value="false">Belum</option>
-              </select>
-            ) : kameraData.process ? (
-              "Sudah"
-            ) : (
-              "Belum"
-            )}
-          </div>
-
-          <div className="flex gap-4 mt-4 flex-wrap">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleSave}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  Simpan
-                </button>
-                <button
-                  onClick={() => {
-                    setIsEditing(false);
-                    setFormData(kameraData);
-                  }}
-                  className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
-                >
-                  Batal
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={handleDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                >
-                  Hapus Data
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="w-full md:w-[400px] h-auto flex justify-center items-center">
-          {kameraData.gambar ? (
-            <img
-              src={`https://monja-file.pptik.id/v1/view?path=presensi/${kameraData.gambar}`}
-              alt="Gambar Kamera"
-              className="rounded w-full object-contain"
-            />
-          ) : (
-            <div className="w-full h-60 bg-gray-300 flex items-center justify-center text-gray-600 text-lg rounded">
-              Tidak ada gambar
+      {/* Konten Utama */}
+      <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+          {/* Kolom Kiri */}
+          <div className="lg:col-span-2 space-y-4 text-sm md:text-base text-slate-700">
+            <div>
+              <h2 className="font-semibold mb-1">ID Kamera</h2>
+              <p className="text-slate-900 font-medium">{kameraData.id}</p>
             </div>
-          )}
+            <div>
+              <h2 className="font-semibold mb-1">Device</h2>
+              <p className="text-slate-900 font-medium">
+                {kameraData.guid_device || "-"}
+              </p>
+            </div>
+            <div>
+              <h2 className="font-semibold mb-1">Waktu terdeteksi</h2>
+              <p className="text-slate-900 font-medium">
+                {formatTanggalWaktu(kameraData.datetime)}
+              </p>
+            </div>
+            <div>
+              <h2 className="font-semibold mb-1">Status Proses AI</h2>
+              <span
+                className={`inline-block px-3 py-1 text-xs rounded-full font-semibold ${
+                  kameraData.process
+                    ? "bg-sky-100 text-sky-800"
+                    : "bg-orange-100 text-orange-800"
+                }`}
+              >
+                {kameraData.process ? "Sudah" : "Belum"}
+              </span>
+            </div>
+
+            {/* Tombol */}
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md font-semibold transition-colors"
+              >
+                Hapus Data
+              </button>
+            </div>
+          </div>
+
+          {/* Kolom Kanan - Gambar */}
+          <div className="w-full h-auto flex flex-col items-center justify-start">
+            <h2 className="text-lg font-semibold text-slate-700 mb-4 w-full">
+              Foto Presensi
+            </h2>
+            <div className="w-full aspect-square rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+              {kameraData.gambar ? (
+                <img
+                  src={`https://monja-file.pptik.id/v1/view?path=presensi/${kameraData.gambar}`}
+                  alt="Gambar Kamera"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="text-center text-slate-500">
+                  <CameraOff size={48} className="mx-auto mb-2" />
+                  <p>Tidak ada gambar</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/*  Modal konfirmasi hapus */}
+      {/* Modal konfirmasi hapus */}
       <DeleteConfirmModal
         isOpen={!!confirmDeleteId}
         onClose={() => setConfirmDeleteId(null)}

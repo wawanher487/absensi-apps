@@ -81,10 +81,10 @@ export default function Laporan() {
 
           if (item.status_absen === "hadir") {
             grouped[tanggal].hadir += 1;
-            grouped[tanggal].hadirList.push(item.nama);
+            grouped[tanggal].hadirList.push(item.name);
           } else if (item.status_absen === "terlambat") {
             grouped[tanggal].terlambat += 1;
-            grouped[tanggal].terlambatList.push(item.nama);
+            grouped[tanggal].terlambatList.push(item.name);
           }
 
           if (item.jam_masuk_actual) {

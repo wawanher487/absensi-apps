@@ -3,7 +3,7 @@ import { localApi } from "../../api/axiosInstance";
 
 const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
   const [formData, setFormData] = useState({
-    nama: "",
+    name: "",
     nip: "",
     phoneNumber: "",
     address: "",
@@ -26,7 +26,7 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
       }
 
       setFormData({
-        nama: karyawan.nama || "",
+        name: karyawan.name || "",
         nip: karyawan.nip || "",
         phoneNumber: karyawan.phoneNumber || "",
         address: karyawan.address || "",
@@ -96,8 +96,8 @@ const EditKaryawan = ({ karyawan, onClose, onUpdate }) => {
             <label className="mb-1 font-medium">Nama</label>
             <input
               type="text"
-              name="nama"
-              value={formData.nama}
+              name="name"
+              value={formData.name}
               onChange={handleChange}
               required
               className="border px-3 py-2 rounded focus:outline-none focus:ring focus:ring-blue-300"

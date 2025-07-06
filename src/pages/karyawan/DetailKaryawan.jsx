@@ -17,6 +17,7 @@ import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import EditKaryawan from "./EditKaryawan";
 import { toast } from "react-toastify";
 import { formatTanggalSaja, toDatetimeLocal } from "../../utils/date";
+import { useNavigate } from "react-router-dom";
 
 const DetailKaryawan = () => {
   const { id } = useParams();
@@ -28,6 +29,7 @@ const DetailKaryawan = () => {
   const today = new Date();
   const [bulan, setBulan] = useState(today.getMonth() + 1);
   const [tahun, setTahun] = useState(today.getFullYear());
+  const navigate = useNavigate();
 
   const handleEdit = (karyawan) => {
     setSelectedKaryawan(karyawan);
@@ -42,7 +44,7 @@ const DetailKaryawan = () => {
     try {
       await localApi.delete(`/karyawan/delete/${confirmDeleteId}`);
       toast.success("Berhasil menghapus data.");
-      fetchKaryawan();
+      navigate("/app/karyawan"); // ⬅️ Redirect ke halaman karyawan
     } catch (error) {
       console.error("Gagal hapus karyawan:", error);
       toast.error("Gagal menghapus data.");
@@ -56,7 +58,7 @@ const DetailKaryawan = () => {
   }, [id]);
 
   useEffect(() => {
-    if (karyawan?.userGuid) {
+    if (karyawan?.guid) {
       fetchPresensi(bulan, tahun);
     }
   }, [karyawan, bulan, tahun]);
@@ -71,19 +73,19 @@ const DetailKaryawan = () => {
   };
 
   const fetchPresensi = async (bulanQuery = bulan, tahunQuery = tahun) => {
-    if (!karyawan?.userGuid) return;
+    if (!karyawan?.guid) return;
 
     console.log("Fetching presensi:", {
-      userGuid: karyawan.userGuid,
+      guid: karyawan.guid,
       bulan: bulanQuery,
       tahun: tahunQuery,
     });
 
     try {
       const res = await localApi.get(
-        `/history_ai/riwayat_bulanan?userGuid=${
-          karyawan.userGuid
-        }&bulan=${String(bulanQuery).padStart(2, "0")}&tahun=${tahunQuery}`
+        `/history_ai/riwayat_bulanan?userGuid=${karyawan.guid}&bulan=${String(
+          bulanQuery
+        ).padStart(2, "0")}&tahun=${tahunQuery}`
       );
       setPresensi(res.data.data || []);
     } catch (err) {
@@ -96,16 +98,24 @@ const DetailKaryawan = () => {
 
   const hariKerja = generateHariKerja(bulan, tahun);
 
-  const tanggalHadir = presensi.map((p) => {
-    const [dd, mm, yyyy] = p.datetime.split(" ")[0].split("-");
-    return `${yyyy}-${mm}-${dd}`;
-  });
+  // Gabungkan presensi per hari
+  const hasilGabung = gabungkanPresensi(presensi);
 
-  let totalTidakHadir = 0;
-  if (presensi.length > 0) {
-    const tidakHadir = hariKerja.filter((tgl) => !tanggalHadir.includes(tgl));
-    totalTidakHadir = tidakHadir.length;
-  }
+  // Ambil hanya tanggal yang punya status 'hadir' atau 'terlambat'
+  const tanggalHadir = hasilGabung
+    .filter(
+      (p) =>
+        hariKerja.includes(p.tanggal) && // 🔥 hanya hitung jika itu hari kerja
+        p.status.some((s) =>
+          ["hadir", "terlambat"].includes(s.toLowerCase().trim())
+        )
+    )
+    .map((p) => p.tanggal);
+
+  // Hitung tidak hadir = hari kerja - tanggal hadir
+  const totalTidakHadir = hariKerja.filter(
+    (tgl) => !tanggalHadir.includes(tgl)
+  ).length;
 
   const totalHadirTepatWaktu = presensi.filter(
     (p) => p.status_absen === "hadir"
@@ -128,6 +138,40 @@ const DetailKaryawan = () => {
     });
   };
 
+  function gabungkanPresensi(presensiList) {
+    const hasil = {};
+
+    presensiList.forEach((item) => {
+      const tanggalKey = item.datetime.slice(0, 10); // yyyy-mm-dd
+
+      if (!hasil[tanggalKey]) {
+        hasil[tanggalKey] = {
+          tanggal: tanggalKey,
+          jamMasuk: "-",
+          jamPulang: "-",
+          totalTelat: 0,
+          status: [],
+        };
+      }
+
+      if (["hadir", "terlambat"].includes(item.status_absen)) {
+        hasil[tanggalKey].jamMasuk = item.jam_masuk_actual;
+        hasil[tanggalKey].totalTelat = item.total_jam_telat || 0;
+      }
+
+      if (item.status_absen === "pulang") {
+        hasil[tanggalKey].jamPulang = item.jam_keluar_actual;
+      }
+
+      hasil[tanggalKey].status.push(item.status_absen);
+    });
+
+    // Kembalikan array dari objek
+    return Object.values(hasil).sort(
+      (a, b) => new Date(a.tanggal) - new Date(b.tanggal)
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Profil Header */}
@@ -146,7 +190,7 @@ const DetailKaryawan = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-800">
-              {karyawan.nama}
+              {karyawan.name}
             </h1>
             <p className="text-blue-600 text-sm font-medium">
               {karyawan.jabatan}
@@ -293,50 +337,51 @@ const DetailKaryawan = () => {
               </tr>
             </thead>
             <tbody>
-              {presensi.length > 0 ? (
-                presensi.slice(0, 30).map((p, i) => {
-                  const tanggal = formatTanggalSaja(p.datetime);
-                  const jamMasuk = p.jam_masuk_actual || "-";
-                  const jamPulang = p.jam_keluar_actual || "-";
-                  const status = p.status_absen;
-                  const telat = p.total_jam_telat || "-";
+              {gabungkanPresensi(presensi).length > 0 ? (
+                gabungkanPresensi(presensi)
+                  .slice(0, 30)
+                  .map((p, i) => {
+                    const tanggal = formatTanggalSaja(p.tanggal);
+                    const jamMasuk = p.jamMasuk || "-";
+                    const jamPulang = p.jamPulang || "-";
+                    const telat = p.totalTelat || "-";
+                    const statusGabungan = p.status.join(", ");
 
-                  return (
-                    <tr key={i} className="border-t hover:bg-gray-50">
-                      <td className="px-4 py-2">
-                        {tanggal}
-                        <div className="text-xs text-gray-400">
-                          Seharusnya: 08:00:00
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-2">{jamMasuk}</td>
-                      <td className="px-4 py-2">{jamPulang}</td>
-                      <td className="px-4 py-2">
-                        {typeof telat === "number" && telat > 0
-                          ? telat >= 60
-                            ? `${Math.floor(telat / 60)} jam ${
-                                telat % 60 !== 0 ? `${telat % 60} menit` : ""
-                              }`
-                            : `${telat} menit`
-                          : "-"}
-                      </td>
-                      <td className="px-4 py-2">
-                        <span
-                          className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                            status === "hadir"
-                              ? "bg-green-100 text-green-700"
-                              : status === "terlambat"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          {status}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })
+                    return (
+                      <tr key={i} className="border-t hover:bg-gray-50">
+                        <td className="px-4 py-2">
+                          {tanggal}
+                          <div className="text-xs text-gray-400">
+                            Seharusnya: 08:00:00
+                          </div>
+                        </td>
+                        <td className="px-4 py-2">{jamMasuk}</td>
+                        <td className="px-4 py-2">{jamPulang}</td>
+                        <td className="px-4 py-2">
+                          {typeof telat === "number" && telat > 0
+                            ? telat >= 60
+                              ? `${Math.floor(telat / 60)} jam ${
+                                  telat % 60 !== 0 ? `${telat % 60} menit` : ""
+                                }`
+                              : `${telat} menit`
+                            : "-"}
+                        </td>
+                        <td className="px-4 py-2">
+                          <span
+                            className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                              statusGabungan.includes("terlambat")
+                                ? "bg-red-100 text-red-700"
+                                : statusGabungan.includes("hadir")
+                                ? "bg-green-100 text-green-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}
+                          >
+                            {statusGabungan}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
               ) : (
                 <tr>
                   <td colSpan="5" className="text-center py-6 text-gray-500">
@@ -382,12 +427,15 @@ function generateHariKerja(bulan, tahun) {
   const totalHari = new Date(tahun, bulan, 0).getDate();
 
   for (let tgl = 1; tgl <= totalHari; tgl++) {
-    const date = new Date(tahun, bulan - 1, tgl);
-    const day = date.getDay(); // 0: Minggu, 6: Sabtu
+    // 👇 gunakan UTC agar tidak dipengaruhi timezone lokal
+    const date = new Date(Date.UTC(tahun, bulan - 1, tgl));
+    const day = date.getUTCDay(); // 0: Minggu, 6: Sabtu
 
     if (day >= 1 && day <= 5) {
-      if (isCurrentMonth && date > today) continue; // Lewati hari kerja di masa depan
-      hariKerja.push(date.toISOString().slice(0, 10));
+      const isoDate = date.toISOString().slice(0, 10); // yyyy-mm-dd
+      if (isCurrentMonth && isoDate > today.toISOString().slice(0, 10))
+        continue;
+      hariKerja.push(isoDate);
     }
   }
 

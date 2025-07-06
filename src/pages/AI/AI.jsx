@@ -29,7 +29,7 @@ export default function DataAI() {
       const res = await localApi.get("/history_ai/get", {
         params: {
           page: currentPage,
-          nama: filterNama,
+          name: filterNama,
           tanggal: tanggalQuery,
         },
       });
@@ -121,10 +121,10 @@ export default function DataAI() {
               <div className="bg-white p-4 rounded shadow border text-center hover:shadow-lg transition">
                 <img
                   src={`https://monja-file.pptik.id/v1/view?path=presensi/${item.gambar}`}
-                  alt={`Gambar ${item.nama}`}
+                  alt={`Gambar ${item.name}`}
                   className="w-full h-40 object-cover rounded mb-2"
                 />
-                <p className="font-semibold">{item.nama}</p>
+                <p className="font-semibold">{item.name}</p>
                 <p className="text-sm">
                   Tanggal: {formatTanggalPendek(item.datetime)}
                 </p>

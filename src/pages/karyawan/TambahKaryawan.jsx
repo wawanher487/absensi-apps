@@ -47,7 +47,7 @@ const RefreshCwIcon = (props) => (
 const TambahKaryawan = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    nama: "",
+    name: "",
     nip: "",
     phoneNumber: "",
     birthDate: "",
@@ -179,8 +179,8 @@ const TambahKaryawan = () => {
                       </label>
                       <input
                         type="text"
-                        name="nama"
-                        value={formData.nama}
+                        name="name"
+                        value={formData.name}
                         onChange={handleChange}
                         required
                         className="w-full border-gray-300 bg-gray-50 px-4 py-2.5 rounded-lg mt-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"

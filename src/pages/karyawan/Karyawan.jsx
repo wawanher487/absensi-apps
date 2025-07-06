@@ -23,7 +23,7 @@ const Karyawan = () => {
   const fetchKaryawan = async () => {
     try {
       const params = new URLSearchParams();
-      if (filterNama) params.append("nama", filterNama);
+      if (filterNama) params.append("name", filterNama);
       if (filterUnit) params.append("unit", filterUnit);
       if (filterNip) params.append("nip", filterNip);
 
@@ -132,7 +132,7 @@ const Karyawan = () => {
                 onClick={() => navigate(`/app/karyawan/${k.id}`)}
               >
                 <td className="px-4 py-3">{index + 1}</td>
-                <td className="px-4 py-3">{k.nama}</td>
+                <td className="px-4 py-3">{k.name}</td>
                 <td className="px-4 py-3">{k.nip}</td>
                 <td className="px-4 py-3">{k.phoneNumber}</td>
                 <td className="px-4 py-3">{k.unit}</td>
