@@ -151,7 +151,7 @@ const DashboardPresensi = () => {
                     </td>
                     <td
                       className={`px-6 py-3 capitalize font-medium ${
-                        item.status_absen === "terlambat"
+                        item.status_absen === "Terlambat"
                           ? "text-red-600"
                           : "text-green-600"
                       }`}

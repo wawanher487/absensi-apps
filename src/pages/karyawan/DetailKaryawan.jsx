@@ -138,12 +138,50 @@ const DetailKaryawan = () => {
     });
   };
 
+  // function gabungkanPresensi(presensiList) {
+  //   const hasil = {};
+
+  //   presensiList.forEach((item) => {
+  //     const tanggalKey = item.datetime.slice(0, 10); // yyyy-mm-dd
+
+  //     if (!hasil[tanggalKey]) {
+  //       hasil[tanggalKey] = {
+  //         tanggal: tanggalKey,
+  //         jamMasuk: "-",
+  //         jamPulang: "-",
+  //         totalTelat: 0,
+  //         status: [],
+  //       };
+  //     }
+
+  //     const status = item.status_absen?.toLowerCase().trim();
+
+  //     if (["hadir", "terlambat"].includes(status)) {
+  //       hasil[tanggalKey].jamMasuk = item.jam_masuk_actual;
+  //       hasil[tanggalKey].totalTelat = item.total_jam_telat || 0;
+  //     }
+
+  //     if (status === "pulang") {
+  //       hasil[tanggalKey].jamPulang = item.jam_keluar_actual;
+  //     }
+
+  //     hasil[tanggalKey].status.push(item.status_absen);
+
+  //     console.log("Gabung:", item.status_absen, item.jam_masuk_actual);
+  //   });
+
+  //   // Kembalikan array dari objek
+  //   return Object.values(hasil).sort(
+  //     (a, b) => new Date(a.tanggal) - new Date(b.tanggal)
+  //   );
+  // }
   function gabungkanPresensi(presensiList) {
     const hasil = {};
 
     presensiList.forEach((item) => {
       const tanggalKey = item.datetime.slice(0, 10); // yyyy-mm-dd
 
+      // Jika belum ada entry untuk tanggal ini, buat
       if (!hasil[tanggalKey]) {
         hasil[tanggalKey] = {
           tanggal: tanggalKey,
@@ -154,19 +192,49 @@ const DetailKaryawan = () => {
         };
       }
 
-      if (["hadir", "terlambat"].includes(item.status_absen)) {
-        hasil[tanggalKey].jamMasuk = item.jam_masuk_actual;
+      // ⛔ Jika sudah lengkap, jangan timpa
+      const sudahLengkap =
+        hasil[tanggalKey].jamMasuk !== "-" &&
+        hasil[tanggalKey].jamPulang !== "-";
+
+      if (sudahLengkap) return;
+
+      const isMasuk = ["hadir", "terlambat"].includes(
+        item.status_absen.toLowerCase()
+      );
+      const isPulang = item.status_absen.toLowerCase() === "pulang";
+
+      // Jika data lengkap (baik masuk dan pulang ada di satu item), langsung simpan semua
+      const dataLengkap =
+        item.jam_masuk_actual !== "-" &&
+        item.jam_keluar_actual !== "-" &&
+        item.jam_masuk_actual &&
+        item.jam_keluar_actual;
+
+      if (dataLengkap) {
+        hasil[tanggalKey] = {
+          tanggal: tanggalKey,
+          jamMasuk: item.jam_masuk_actual,
+          jamPulang: item.jam_keluar_actual,
+          totalTelat: item.total_jam_telat || 0,
+          status: [item.status_absen],
+        };
+        return; // ⛔ skip merging, langsung pakai data lengkap ini
+      }
+
+      // ⬇ Gabungkan masuk dan pulang secara terpisah kalau belum lengkap
+      if (isMasuk && hasil[tanggalKey].jamMasuk === "-") {
+        hasil[tanggalKey].jamMasuk = item.jam_masuk_actual || "-";
         hasil[tanggalKey].totalTelat = item.total_jam_telat || 0;
       }
 
-      if (item.status_absen === "pulang") {
-        hasil[tanggalKey].jamPulang = item.jam_keluar_actual;
+      if (isPulang && hasil[tanggalKey].jamPulang === "-") {
+        hasil[tanggalKey].jamPulang = item.jam_keluar_actual || "-";
       }
 
       hasil[tanggalKey].status.push(item.status_absen);
     });
 
-    // Kembalikan array dari objek
     return Object.values(hasil).sort(
       (a, b) => new Date(a.tanggal) - new Date(b.tanggal)
     );
