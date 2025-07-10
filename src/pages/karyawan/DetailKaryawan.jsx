@@ -136,6 +136,7 @@ const DetailKaryawan = () => {
           status: Array.isArray(item.status_absen)
             ? item.status_absen.map((s) => s.toLowerCase())
             : [String(item.status_absen || "").toLowerCase()],
+          jamSeharusnya: item.jam_masuk || "08:00:00",
         };
       })
       .sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
@@ -319,7 +320,7 @@ const DetailKaryawan = () => {
                       <td className="px-4 py-2">
                         {tanggal}
                         <div className="text-xs text-gray-400">
-                          Seharusnya: 08:00:00
+                          Seharusnya: {p.jamSeharusnya || "-"}
                         </div>
                       </td>
                       <td className="px-4 py-2">{jamMasuk}</td>

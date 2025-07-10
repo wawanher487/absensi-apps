@@ -3,7 +3,7 @@ import { FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Pagination from "../../components/pagination";
 import { localApi } from "../../api/axiosInstance";
-import { formatTanggalPendek } from "../../utils/date";
+
 
 export default function KameraPage() {
   const [dataKamera, setDataKamera] = useState([]);
@@ -17,9 +17,12 @@ export default function KameraPage() {
       try {
         const params = new URLSearchParams();
         params.append("page", currentPage);
+
         if (tanggal) {
-          // Format tanggal ke DD-MM-YYYY
-          const [yyyy, mm, dd] = tanggal.split("-");
+          const dateObj = new Date(tanggal);
+          const dd = String(dateObj.getDate()).padStart(2, "0");
+          const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+          const yyyy = dateObj.getFullYear();
           params.append("tanggal", `${dd}-${mm}-${yyyy}`);
         }
 
@@ -120,3 +123,12 @@ export default function KameraPage() {
     </div>
   );
 }
+
+export function formatTanggalPendek(datetimeStr) {
+  // Contoh: "10-07-2025 13:07:19"
+  const [tanggal, waktu] = datetimeStr.split(" ");
+  const [dd, mm, yyyy] = tanggal.split("-");
+
+  return `${dd}-${mm}-${yyyy}`;
+}
+

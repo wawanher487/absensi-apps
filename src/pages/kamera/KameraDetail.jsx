@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { localApi } from "../../api/axiosInstance";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import { toast } from "react-toastify";
-import { formatTanggalWaktu } from "../../utils/date";
 import { ArrowLeft, CameraOff, Calendar } from "lucide-react";
 
 export default function DetailKamera() {
@@ -148,4 +147,45 @@ export default function DetailKamera() {
       />
     </div>
   );
+}
+
+export function formatTanggalWaktu(datetimeStr) {
+  // Misalnya datetimeStr = "07-10-2025 13:07:19"
+  const [tanggal, waktu] = datetimeStr.split(" ");
+  const [dd, mm, yyyy] = tanggal.split("-");
+
+  // Buat objek Date manual agar bisa ambil hari (untuk nama hari)
+  const dateObj = new Date(`${yyyy}-${mm}-${dd}T${waktu}`);
+
+  const hariIndo = [
+    "Minggu",
+    "Senin",
+    "Selasa",
+    "Rabu",
+    "Kamis",
+    "Jumat",
+    "Sabtu",
+  ];
+  const namaHari = hariIndo[dateObj.getDay()];
+
+  return `${namaHari}, ${dd} ${getNamaBulan(mm)} ${yyyy} pukul ${waktu}`;
+}
+
+function getNamaBulan(bulan) {
+  const bulanIndo = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+  ];
+  const index = parseInt(bulan, 10) - 1;
+  return bulanIndo[index] || "-";
 }
