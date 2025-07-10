@@ -129,7 +129,32 @@ export default function DataAI() {
                   Tanggal: {formatTanggalPendek(item.datetime)}
                 </p>
                 <p className="text-sm">Masuk: {item.jam_masuk_actual}</p>
-                <p className="text-sm">Kehadiran: {item.status_absen}</p>
+                <div className="text-sm space-y-1">
+                  {Array.isArray(item.status_absen) ? (
+                    item.status_absen.map((status, i) => (
+                      <p
+                        key={i}
+                        className={`inline-block px-2 py-1 rounded text-xs font-semibold
+            ${
+              status.toLowerCase() === "hadir"
+                ? "bg-green-100 text-green-700"
+                : status.toLowerCase() === "terlambat"
+                ? "bg-red-100 text-red-800"
+                : status.toLowerCase() === "pulang"
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-gray-100 text-gray-600"
+            }`}
+                      >
+                        {status}
+                      </p>
+                    ))
+                  ) : (
+                    <p className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs inline-block">
+                      {item.status_absen}
+                    </p>
+                  )}
+                </div>
+
                 <p className="text-sm">pulang: {item.jam_keluar_actual}</p>
               </div>
             </Link>

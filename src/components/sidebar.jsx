@@ -72,6 +72,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               label="karyawan"
               collapsed={collapsed}
             />
+            {/* <NavItemExternal
+              href="http://localhost:6734/"
+              icon={<Camera size={18} />}
+              label="Uji Coba Absensi"
+              collapsed={collapsed}
+            /> */}
           </nav>
         </div>
 
@@ -129,5 +135,19 @@ function NavItem({ to, icon, label, collapsed }) {
       {icon}
       {!collapsed && <span>{label}</span>}
     </Link>
+  );
+}
+
+function NavItemExternal({ href, icon, label, collapsed }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 hover:bg-blue-700 p-2 rounded"
+    >
+      {icon}
+      {!collapsed && <span>{label}</span>}
+    </a>
   );
 }

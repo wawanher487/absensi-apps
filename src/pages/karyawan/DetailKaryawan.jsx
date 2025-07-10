@@ -102,29 +102,15 @@ const DetailKaryawan = () => {
   const hasilGabung = gabungkanPresensi(presensi);
 
   // Ambil hanya tanggal yang punya status 'hadir' atau 'terlambat'
-  const tanggalHadir = hasilGabung
-    .filter(
-      (p) =>
-        hariKerja.includes(p.tanggal) && // 🔥 hanya hitung jika itu hari kerja
-        p.status.some((s) =>
-          ["hadir", "terlambat"].includes(s.toLowerCase().trim())
-        )
-    )
-    .map((p) => p.tanggal);
-
-  // Hitung tidak hadir = hari kerja - tanggal hadir
+  const tanggalHadir = presensi.map((p) => p.datetime.slice(0, 10));
   const totalTidakHadir = hariKerja.filter(
     (tgl) => !tanggalHadir.includes(tgl)
   ).length;
 
+  const totalTerlambat = presensi.filter((p) => p.jumlah_telat > 0).length;
   const totalHadirTepatWaktu = presensi.filter(
-    (p) => p.status_absen === "hadir"
+    (p) => p.jumlah_telat === 0
   ).length;
-
-  const totalTerlambat = presensi.filter(
-    (p) => p.status_absen === "terlambat"
-  ).length;
-
   const totalHariMasuk = totalHadirTepatWaktu + totalTerlambat;
 
   const totalGaji = totalHariMasuk * (karyawan.gajiHarian || 0);
@@ -138,106 +124,21 @@ const DetailKaryawan = () => {
     });
   };
 
-  // function gabungkanPresensi(presensiList) {
-  //   const hasil = {};
-
-  //   presensiList.forEach((item) => {
-  //     const tanggalKey = item.datetime.slice(0, 10); // yyyy-mm-dd
-
-  //     if (!hasil[tanggalKey]) {
-  //       hasil[tanggalKey] = {
-  //         tanggal: tanggalKey,
-  //         jamMasuk: "-",
-  //         jamPulang: "-",
-  //         totalTelat: 0,
-  //         status: [],
-  //       };
-  //     }
-
-  //     const status = item.status_absen?.toLowerCase().trim();
-
-  //     if (["hadir", "terlambat"].includes(status)) {
-  //       hasil[tanggalKey].jamMasuk = item.jam_masuk_actual;
-  //       hasil[tanggalKey].totalTelat = item.total_jam_telat || 0;
-  //     }
-
-  //     if (status === "pulang") {
-  //       hasil[tanggalKey].jamPulang = item.jam_keluar_actual;
-  //     }
-
-  //     hasil[tanggalKey].status.push(item.status_absen);
-
-  //     console.log("Gabung:", item.status_absen, item.jam_masuk_actual);
-  //   });
-
-  //   // Kembalikan array dari objek
-  //   return Object.values(hasil).sort(
-  //     (a, b) => new Date(a.tanggal) - new Date(b.tanggal)
-  //   );
-  // }
   function gabungkanPresensi(presensiList) {
-    const hasil = {};
-
-    presensiList.forEach((item) => {
-      const tanggalKey = item.datetime.slice(0, 10); // yyyy-mm-dd
-
-      // Jika belum ada entry untuk tanggal ini, buat
-      if (!hasil[tanggalKey]) {
-        hasil[tanggalKey] = {
-          tanggal: tanggalKey,
-          jamMasuk: "-",
-          jamPulang: "-",
-          totalTelat: 0,
-          status: [],
-        };
-      }
-
-      // ⛔ Jika sudah lengkap, jangan timpa
-      const sudahLengkap =
-        hasil[tanggalKey].jamMasuk !== "-" &&
-        hasil[tanggalKey].jamPulang !== "-";
-
-      if (sudahLengkap) return;
-
-      const isMasuk = ["hadir", "terlambat"].includes(
-        item.status_absen.toLowerCase()
-      );
-      const isPulang = item.status_absen.toLowerCase() === "pulang";
-
-      // Jika data lengkap (baik masuk dan pulang ada di satu item), langsung simpan semua
-      const dataLengkap =
-        item.jam_masuk_actual !== "-" &&
-        item.jam_keluar_actual !== "-" &&
-        item.jam_masuk_actual &&
-        item.jam_keluar_actual;
-
-      if (dataLengkap) {
-        hasil[tanggalKey] = {
-          tanggal: tanggalKey,
-          jamMasuk: item.jam_masuk_actual,
-          jamPulang: item.jam_keluar_actual,
+    return presensiList
+      .map((item) => {
+        const tanggal = item.datetime.slice(0, 10); // yyyy-mm-dd
+        return {
+          tanggal,
+          jamMasuk: item.jam_masuk_actual || "-",
+          jamPulang: item.jam_keluar_actual || "-",
           totalTelat: item.total_jam_telat || 0,
-          status: [item.status_absen],
+          status: Array.isArray(item.status_absen)
+            ? item.status_absen.map((s) => s.toLowerCase())
+            : [String(item.status_absen || "").toLowerCase()],
         };
-        return; // ⛔ skip merging, langsung pakai data lengkap ini
-      }
-
-      // ⬇ Gabungkan masuk dan pulang secara terpisah kalau belum lengkap
-      if (isMasuk && hasil[tanggalKey].jamMasuk === "-") {
-        hasil[tanggalKey].jamMasuk = item.jam_masuk_actual || "-";
-        hasil[tanggalKey].totalTelat = item.total_jam_telat || 0;
-      }
-
-      if (isPulang && hasil[tanggalKey].jamPulang === "-") {
-        hasil[tanggalKey].jamPulang = item.jam_keluar_actual || "-";
-      }
-
-      hasil[tanggalKey].status.push(item.status_absen);
-    });
-
-    return Object.values(hasil).sort(
-      (a, b) => new Date(a.tanggal) - new Date(b.tanggal)
-    );
+      })
+      .sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
   }
 
   return (
@@ -405,51 +306,57 @@ const DetailKaryawan = () => {
               </tr>
             </thead>
             <tbody>
-              {gabungkanPresensi(presensi).length > 0 ? (
-                gabungkanPresensi(presensi)
-                  .slice(0, 30)
-                  .map((p, i) => {
-                    const tanggal = formatTanggalSaja(p.tanggal);
-                    const jamMasuk = p.jamMasuk || "-";
-                    const jamPulang = p.jamPulang || "-";
-                    const telat = p.totalTelat || "-";
-                    const statusGabungan = p.status.join(", ");
+              {hasilGabung.length > 0 ? (
+                hasilGabung.slice(0, 30).map((p, i) => {
+                  const tanggal = formatTanggalSaja(p.tanggal);
+                  const jamMasuk = p.jamMasuk || "-";
+                  const jamPulang = p.jamPulang || "-";
+                  const telat = p.totalTelat || "-";
+                  const statusGabungan = p.status.join(", ");
 
-                    return (
-                      <tr key={i} className="border-t hover:bg-gray-50">
-                        <td className="px-4 py-2">
-                          {tanggal}
-                          <div className="text-xs text-gray-400">
-                            Seharusnya: 08:00:00
-                          </div>
-                        </td>
-                        <td className="px-4 py-2">{jamMasuk}</td>
-                        <td className="px-4 py-2">{jamPulang}</td>
-                        <td className="px-4 py-2">
-                          {typeof telat === "number" && telat > 0
-                            ? telat >= 60
-                              ? `${Math.floor(telat / 60)} jam ${
-                                  telat % 60 !== 0 ? `${telat % 60} menit` : ""
-                                }`
-                              : `${telat} menit`
-                            : "-"}
-                        </td>
-                        <td className="px-4 py-2">
-                          <span
-                            className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                              statusGabungan.includes("terlambat")
-                                ? "bg-red-100 text-red-700"
-                                : statusGabungan.includes("hadir")
-                                ? "bg-green-100 text-green-700"
-                                : "bg-yellow-100 text-yellow-700"
-                            }`}
-                          >
-                            {statusGabungan}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })
+                  return (
+                    <tr key={i} className="border-t hover:bg-gray-50">
+                      <td className="px-4 py-2">
+                        {tanggal}
+                        <div className="text-xs text-gray-400">
+                          Seharusnya: 08:00:00
+                        </div>
+                      </td>
+                      <td className="px-4 py-2">{jamMasuk}</td>
+                      <td className="px-4 py-2">{jamPulang}</td>
+                      <td className="px-4 py-2">
+                        {typeof telat === "number" && telat > 0
+                          ? telat >= 60
+                            ? `${Math.floor(telat / 60)} jam ${
+                                telat % 60 !== 0 ? `${telat % 60} menit` : ""
+                              }`
+                            : `${telat} menit`
+                          : "-"}
+                      </td>
+                      <td className="px-4 py-2">
+                        {(() => {
+                          const isTerlambat =
+                            statusGabungan.includes("terlambat");
+                          const isHadir = statusGabungan.includes("hadir");
+
+                          return (
+                            <span
+                              className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                                isTerlambat
+                                  ? "bg-red-100 text-red-700"
+                                  : isHadir
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-yellow-100 text-yellow-700"
+                              }`}
+                            >
+                              {statusGabungan}
+                            </span>
+                          );
+                        })()}
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="5" className="text-center py-6 text-gray-500">

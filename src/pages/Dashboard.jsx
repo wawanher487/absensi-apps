@@ -149,15 +149,33 @@ const DashboardPresensi = () => {
                     <td className="px-6 py-3 border-b">
                       {item.jam_masuk_actual}
                     </td>
-                    <td
-                      className={`px-6 py-3 capitalize font-medium ${
-                        item.status_absen === "Terlambat"
-                          ? "text-red-600"
-                          : "text-green-600"
-                      }`}
-                      style={{ borderBottom: "1px solid #000000" }} // default Tailwind gray-200
-                    >
-                      {item.status_absen}
+                    <td className="px-6 py-3 space-x-1 border-b">
+                      {Array.isArray(item.status_absen) &&
+                      item.status_absen.length > 0 ? (
+                        item.status_absen.map((status, i) => {
+                          const s = status?.toLowerCase() || "";
+                          return (
+                            <span
+                              key={i}
+                              className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full ${
+                                s === "terlambat"
+                                  ? "bg-red-100 text-red-800"
+                                  : s === "pulang"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : s === "hadir"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-gray-100 text-gray-600"
+                              }`}
+                            >
+                              {status}
+                            </span>
+                          );
+                        })
+                      ) : (
+                        <span className="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 text-xs rounded-full">
+                          Tidak Ada Status
+                        </span>
+                      )}
                     </td>
 
                     <td className="px-6 py-3 border-b text-center">

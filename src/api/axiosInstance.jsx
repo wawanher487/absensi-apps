@@ -10,7 +10,7 @@ export const localApi = axios.create({
   withCredentials: true,
 });
 
-// export const localApi = axios.create({
+// export const serverApi = axios.create({
 //   baseURL: 'https://api-human-detection.pptik.id/',
 //   headers: {
 //     "Content-Type": "application/json",

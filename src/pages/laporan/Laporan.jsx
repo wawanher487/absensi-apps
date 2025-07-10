@@ -1,4 +1,3 @@
-// Laporan.jsx
 import { useEffect, useState } from "react";
 import { localApi } from "../../api/axiosInstance";
 import jsPDF from "jspdf";
@@ -19,13 +18,11 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-dayjs.extend(isSameOrBefore); // << tambahkan ini
-dayjs().tz("Asia/Jakarta");
-
-const padZero = (n) => (n < 10 ? "0" + n : n);
+dayjs.extend(isSameOrBefore);
+dayjs.tz.setDefault("Asia/Jakarta");
 
 const getTanggalRange = (rangeType) => {
-  const end = dayjs().tz("Asia/Jakarta");
+  const end = dayjs().tz();
   let start = end;
 
   if (rangeType === "week") start = end.subtract(6, "day");
@@ -42,8 +39,6 @@ const getTanggalRange = (rangeType) => {
   return dates;
 };
 
-console.log("Tanggal Range:", getTanggalRange("week"));
-
 export default function Laporan() {
   const [chartData, setChartData] = useState([]);
   const [chartRange, setChartRange] = useState("week");
@@ -57,16 +52,12 @@ export default function Laporan() {
       const end = tanggalList[tanggalList.length - 1];
 
       try {
-        const res = await localApi.get(
-          `/history_ai/range?start=${start}&end=${end}`
-        );
+        const res = await localApi.get(`/history_ai/range?start=${start}&end=${end}`);
         const data = res.data.data || [];
         const grouped = {};
 
         data.forEach((item) => {
-          const tanggal = dayjs(item.datetime)
-            .tz("Asia/Jakarta")
-            .format("DD-MM-YYYY");
+          const tanggal = dayjs(item.datetime).tz().format("DD-MM-YYYY");
 
           if (!grouped[tanggal]) {
             grouped[tanggal] = {
@@ -79,12 +70,22 @@ export default function Laporan() {
             };
           }
 
-          if (item.status_absen === "hadir") {
+          const statusArray = Array.isArray(item.status_absen)
+            ? item.status_absen
+            : [item.status_absen];
+
+          if (statusArray.includes("Hadir")) {
             grouped[tanggal].hadir += 1;
-            grouped[tanggal].hadirList.push(item.nama);
-          } else if (item.status_absen === "terlambat") {
+            if (!grouped[tanggal].hadirList.includes(item.nama)) {
+              grouped[tanggal].hadirList.push(item.nama);
+            }
+          }
+
+          if (statusArray.includes("Terlambat")) {
             grouped[tanggal].terlambat += 1;
-            grouped[tanggal].terlambatList.push(item.nama);
+            if (!grouped[tanggal].terlambatList.includes(item.nama)) {
+              grouped[tanggal].terlambatList.push(item.nama);
+            }
           }
 
           if (item.jam_masuk_actual) {
@@ -103,17 +104,11 @@ export default function Laporan() {
             tanggal: tgl,
             hadir: data?.hadir || 0,
             terlambat: data?.terlambat || 0,
-            avgMasuk: data?.jamMasuk?.length
-              ? (
-                  data.jamMasuk.reduce((a, b) => a + b, 0) /
-                  data.jamMasuk.length
-                ).toFixed(2)
+            avgMasuk: data?.jamMasuk.length
+              ? (data.jamMasuk.reduce((a, b) => a + b, 0) / data.jamMasuk.length).toFixed(2)
               : null,
-            avgKeluar: data?.jamKeluar?.length
-              ? (
-                  data.jamKeluar.reduce((a, b) => a + b, 0) /
-                  data.jamKeluar.length
-                ).toFixed(2)
+            avgKeluar: data?.jamKeluar.length
+              ? (data.jamKeluar.reduce((a, b) => a + b, 0) / data.jamKeluar.length).toFixed(2)
               : null,
             hadirList: data?.hadirList || [],
             terlambatList: data?.terlambatList || [],
@@ -204,10 +199,7 @@ export default function Laporan() {
               tickFormatter={(v) => {
                 const h = Math.floor(v);
                 const m = Math.round((v - h) * 60);
-                return `${String(h).padStart(2, "0")}:${String(m).padStart(
-                  2,
-                  "0"
-                )}`;
+                return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
               }}
             />
             <Tooltip />
@@ -227,15 +219,11 @@ export default function Laporan() {
             <p className="font-semibold">{item.tanggal}</p>
             <p>
               ✅ Hadir:{" "}
-              {(item.hadirList?.length || 0) > 0
-                ? item.hadirList.join(", ")
-                : "-"}
+              {item.hadirList.length > 0 ? item.hadirList.join(", ") : "-"}
             </p>
             <p>
               ⏰ Terlambat:{" "}
-              {(item.terlambatList?.length || 0) > 0
-                ? item.terlambatList.join(", ")
-                : "-"}
+              {item.terlambatList.length > 0 ? item.terlambatList.join(", ") : "-"}
             </p>
           </div>
         ))}

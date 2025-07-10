@@ -27,6 +27,7 @@ const FormField = ({
   onChange,
   type = "text",
   options = [],
+  multiple = false, // <- tambahkan ini
 }) => {
   const commonInputClass =
     "mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 disabled:shadow-none";
@@ -36,10 +37,12 @@ const FormField = ({
       return (
         <select
           name={name}
-          value={value || ""}
+          value={value || (multiple ? [] : "")}
           onChange={onChange}
+          multiple={multiple}
           className={commonInputClass}
         >
+          {!multiple && <option value="">-- Pilih Status --</option>}
           {options.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
@@ -48,6 +51,7 @@ const FormField = ({
         </select>
       );
     }
+
     return (
       <input
         type={type}
@@ -71,7 +75,7 @@ const FormField = ({
         renderEditingView()
       ) : (
         <p className="mt-1 text-sm text-slate-900 font-semibold">
-          {value || "-"}
+          {Array.isArray(value) ? value.join(", ") : value || "-"}
         </p>
       )}
     </div>
@@ -82,8 +86,8 @@ const FormField = ({
 const StatusBadge = ({ status }) => {
   const statusMap = {
     hadir: "bg-green-100 text-green-800",
-    terlambat: "bg-yellow-100 text-yellow-800",
-    "tidak hadir": "bg-red-100 text-red-800",
+    terlambat: "bg-red-100 text-red-800",
+    pulang: "bg-yellow-100 text-yellow-800",
     "tidak dikenali": "bg-gray-100 text-gray-800",
     done: "bg-sky-100 text-sky-800",
     pending: "bg-orange-100 text-orange-800",
@@ -115,6 +119,9 @@ export default function DetailAI() {
           const preparedFormData = {
             ...data,
             datetime: toDatetimeLocal(data.datetime),
+            status_absen: Array.isArray(data.status_absen)
+              ? data.status_absen
+              : [data.status_absen],
           };
           setAiData(data);
           setFormData(preparedFormData);
@@ -156,7 +163,9 @@ export default function DetailAI() {
       setAiData(updatedData);
       setFormData(preparedFormData);
       setIsEditing(false);
+      alert("Data berhasil diperbarui.");
       toast.success("Data berhasil diperbarui.");
+      navigate(`/app/ai`);
     } catch (err) {
       console.error("Gagal mengupdate data:", err.response?.data || err);
       toast.error("Gagal memperbarui data.");
@@ -348,19 +357,34 @@ export default function DetailAI() {
                       name="status_absen"
                       value={formData.status_absen}
                       isEditing={true}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        const selected = Array.from(
+                          e.target.selectedOptions,
+                          (option) => option.value
+                        );
+                        setFormData((prev) => ({
+                          ...prev,
+                          status_absen: selected,
+                        }));
+                      }}
                       type="select"
                       options={[
-                        { value: "", label: "-- Pilih Status --" },
-                        { value: "hadir", label: "Hadir" },
-                        { value: "terlambat", label: "Terlambat" },
-                        { value: "tidak hadir", label: "Tidak Hadir" },
+                        { value: "Hadir", label: "Hadir" },
+                        { value: "Terlambat", label: "Terlambat" },
+                        { value: "Pulang", label: "Pulang" },
                         { value: "tidak dikenali", label: "Tidak Dikenali" },
                       ]}
+                      multiple={true}
                     />
                   ) : (
-                    <div className="mt-1">
-                      <StatusBadge status={aiData.status_absen} />
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {Array.isArray(aiData.status_absen) ? (
+                        aiData.status_absen.map((s, i) => (
+                          <StatusBadge key={i} status={s} />
+                        ))
+                      ) : (
+                        <StatusBadge status={aiData.status_absen} />
+                      )}
                     </div>
                   )}
                 </div>
