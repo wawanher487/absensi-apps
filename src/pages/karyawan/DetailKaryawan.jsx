@@ -16,8 +16,10 @@ import {
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import EditKaryawan from "./EditKaryawan";
 import { toast } from "react-toastify";
-import { formatTanggalSaja, toDatetimeLocal } from "../../utils/date";
+import { formatTanggalSaja } from "../../utils/date";
 import { useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 const DetailKaryawan = () => {
   const { id } = useParams();
@@ -141,6 +143,34 @@ const DetailKaryawan = () => {
       })
       .sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
   }
+
+  const exportToExcel = () => {
+    // Siapkan data yang akan diexport
+    const data = hasilGabung.map((p) => ({
+      Tanggal: formatTanggalSaja(p.tanggal),
+      "Jam Masuk": p.jamMasuk || "-",
+      "Jam Pulang": p.jamPulang || "-",
+      Keterlambatan:
+        typeof p.totalTelat === "number" && p.totalTelat > 0
+          ? p.totalTelat
+          : "-",
+      Status: p.status.join(", "),
+    }));
+
+    // Buat worksheet & workbook
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Riwayat");
+
+    // Nama file, contoh: riwayat_23040101_07_2025.xlsx
+    const filename = `riwayat_${karyawan.nip}_${String(bulan).padStart(
+      2,
+      "0"
+    )}_${tahun}.xlsx`;
+
+    // Tulis file
+    XLSX.writeFile(workbook, filename); // otomatis mem‑download
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -293,6 +323,13 @@ const DetailKaryawan = () => {
               );
             })}
           </select>
+          {/* tombol download */}
+          <button
+            onClick={exportToExcel}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm"
+          >
+            Download Excel
+          </button>
         </div>
 
         <div className="overflow-x-auto">

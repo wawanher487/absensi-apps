@@ -39,6 +39,82 @@ const getTanggalRange = (rangeType) => {
   return dates;
 };
 
+// Komponen baru untuk item detail yang bisa dilipat (Accordion)
+const DetailItem = ({ item }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Jangan tampilkan apapun jika tidak ada data sama sekali pada hari itu
+  if (item.hadirList.length === 0 && item.terlambatList.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="border border-gray-200 rounded-md">
+      {/* Tombol Header Akordeon */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex justify-between items-center p-3 text-left bg-gray-50 hover:bg-gray-100 transition-colors"
+      >
+        <div className="flex items-center gap-4 flex-wrap">
+          <span className="font-bold text-gray-800">{item.tanggal}</span>
+          {/* Badge Ringkasan */}
+          <span className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+            {item.hadirList.length} Hadir
+          </span>
+          <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+            {item.terlambatList.length} Terlambat
+          </span>
+        </div>
+        {/* Ikon Panah Buka/Tutup */}
+        <span
+          className={`transform transition-transform duration-300 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        >
+          ▼
+        </span>
+      </button>
+
+      {/* Konten Detail (yang bisa dilipat) */}
+      {isOpen && (
+        <div className="p-4 border-t border-gray-200 bg-white">
+          {item.hadirList.length > 0 && (
+            <div className="mb-3">
+              <p className="font-semibold text-gray-700 mb-2">✅ Daftar Hadir:</p>
+              <div className="flex flex-wrap gap-2">
+                {item.hadirList.map((nama) => (
+                  <span
+                    key={nama}
+                    className="bg-green-500 text-white px-3 py-1 text-sm rounded-full"
+                  >
+                    {nama}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {item.terlambatList.length > 0 && (
+            <div>
+              <p className="font-semibold text-gray-700 mb-2">⏰ Daftar Terlambat:</p>
+              <div className="flex flex-wrap gap-2">
+                {item.terlambatList.map((nama) => (
+                  <span
+                    key={nama}
+                    className="bg-red-500 text-white px-3 py-1 text-sm rounded-full"
+                  >
+                    {nama}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function Laporan() {
   const [chartData, setChartData] = useState([]);
   const [chartRange, setChartRange] = useState("week");
@@ -127,6 +203,7 @@ export default function Laporan() {
   }, [chartRange]);
 
   const exportPDF = async () => {
+    // Fungsi export PDF tidak diubah
     const pdf = new jsPDF("p", "pt", "a4");
     const title = "Laporan Kehadiran";
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -209,24 +286,21 @@ export default function Laporan() {
           </BarChart>
         </ResponsiveContainer>
       </div>
-
+      
+      {/* BAGIAN YANG DIPERBARUI */}
       <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-lg font-semibold mb-2">
-          Detail Siapa yang Hadir & Terlambat
+        <h2 className="text-lg font-semibold mb-4">
+          Detail Kehadiran per Hari
         </h2>
-        {chartData.map((item) => (
-          <div key={item.tanggal} className="mb-4 border-b pb-2">
-            <p className="font-semibold">{item.tanggal}</p>
-            <p>
-              ✅ Hadir:{" "}
-              {item.hadirList.length > 0 ? item.hadirList.join(", ") : "-"}
+        <div className="space-y-2">
+          {chartData.length > 0 ? (
+            chartData.map((item) => <DetailItem key={item.tanggal} item={item} />)
+          ) : (
+            <p className="text-gray-500 text-center py-4">
+              {loading ? "Memuat data..." : "Tidak ada data untuk ditampilkan."}
             </p>
-            <p>
-              ⏰ Terlambat:{" "}
-              {item.terlambatList.length > 0 ? item.terlambatList.join(", ") : "-"}
-            </p>
-          </div>
-        ))}
+          )}
+        </div>
       </div>
     </div>
   );

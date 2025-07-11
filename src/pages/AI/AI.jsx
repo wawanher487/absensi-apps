@@ -29,7 +29,7 @@ export default function DataAI() {
       const res = await localApi.get("/history_ai/get", {
         params: {
           page: currentPage,
-          name: filterNama,
+          nama: filterNama,
           tanggal: tanggalQuery,
         },
       });
@@ -124,7 +124,7 @@ export default function DataAI() {
                   alt={`Gambar ${item.name}`}
                   className="w-full h-40 object-cover rounded mb-2"
                 />
-                <p className="font-semibold">{item.name}</p>
+                <p className="font-semibold">{item.nama}</p>
                 <p className="text-sm">
                   Tanggal: {formatTanggalPendek(item.datetime)}
                 </p>

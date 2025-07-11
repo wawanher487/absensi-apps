@@ -31,7 +31,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         <div>
           <div className="p-4 border-b border-blue-600 flex justify-between items-center">
             {!collapsed && (
-              <span className="text-xl font-bold">Absensi IoT</span>
+              <span className="text-xl font-bold">Absensi AI</span>
             )}
             <button
               onClick={() => setCollapsed(!collapsed)}
@@ -72,12 +72,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               label="karyawan"
               collapsed={collapsed}
             />
-            {/* <NavItemExternal
+            <NavItemExternal
               href="http://localhost:6734/"
               icon={<Camera size={18} />}
-              label="Uji Coba Absensi"
+              label="Lakukan Absensi"
               collapsed={collapsed}
-            /> */}
+            />
           </nav>
         </div>
 
