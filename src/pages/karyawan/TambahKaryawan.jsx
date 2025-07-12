@@ -111,6 +111,7 @@ const TambahKaryawan = () => {
       });
 
       toast.success("Berhasil menambahkan karyawan");
+      alert("Karyawan berhasil ditambahkan");
       navigate("/app/karyawan");
     } catch (error) {
       console.error("Gagal tambah karyawan:", error);
