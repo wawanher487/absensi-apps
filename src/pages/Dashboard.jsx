@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { localApi } from "../api/axiosInstance";
 import { CameraIcon, BrainCircuit, UserCheck, AlarmClock } from "lucide-react";
 import dayjs from "dayjs";
+import ImageWithFallback from "../components/ImageWithFallback";
 
 const DashboardPresensi = () => {
   const [stats, setStats] = useState({
@@ -211,10 +212,10 @@ const DashboardPresensi = () => {
                 Detail Foto
               </h4>
               <div className="flex flex-col items-center space-y-3">
-                <img
-                  src={`https://monja-file.pptik.id/v1/view?path=presensi/${selectedUser.gambar}`}
-                  alt={selectedUser.nama}
-                  className="w-120 h-120 object-cover rounded-lg border"
+                <ImageWithFallback
+                  filename={selectedUser.gambar}
+                  alt={`Gambar ${selectedUser.nama}`}
+                  className="w-full object-cover rounded-lg border"
                 />
               </div>
             </div>

@@ -7,6 +7,7 @@ import { FiCalendar } from "react-icons/fi";
 import Pagination from "../../components/pagination";
 import axios from "axios";
 import { formatTanggalPendek } from "../../utils/date";
+import ImageWithFallback from "../../components/ImageWithFallback";
 
 export default function DataAI() {
   const [dataAI, setDataAI] = useState([]);
@@ -119,9 +120,9 @@ export default function DataAI() {
           {dataAI.map((item, index) => (
             <Link to={`${item.id}`} key={item.id || index}>
               <div className="bg-white p-4 rounded shadow border text-center hover:shadow-lg transition">
-                <img
-                  src={`https://monja-file.pptik.id/v1/view?path=presensi/${item.gambar}`}
-                  alt={`Gambar ${item.name}`}
+                <ImageWithFallback
+                  filename={item.gambar}
+                  alt={`Gambar ${item.nama}`}
                   className="w-full h-40 object-cover rounded mb-2"
                 />
                 <p className="font-semibold">{item.nama}</p>

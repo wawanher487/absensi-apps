@@ -4,6 +4,7 @@ import { localApi } from "../../api/axiosInstance";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import { toast } from "react-toastify";
 import { ArrowLeft, CameraOff, Calendar } from "lucide-react";
+import ImageWithFallback from "../../components/ImageWithFallback";
 
 export default function DetailKamera() {
   const { id } = useParams();
@@ -122,9 +123,9 @@ export default function DetailKamera() {
             </h2>
             <div className="w-full aspect-square rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
               {kameraData.gambar ? (
-                <img
-                  src={`https://monja-file.pptik.id/v1/view?path=presensi/${kameraData.gambar}`}
-                  alt="Gambar Kamera"
+                <ImageWithFallback
+                  filename={kameraData.gambar}
+                  alt={`Gambar ${kameraData.guid_device}`}
                   className="w-full h-full object-cover"
                 />
               ) : (

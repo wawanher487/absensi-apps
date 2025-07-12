@@ -17,6 +17,7 @@ import { localApi } from "../../api/axiosInstance";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import { toast } from "react-toastify";
 import { formatTanggalWaktu, toDatetimeLocal } from "../../utils/date";
+import ImageWithFallback from "../../components/ImageWithFallback";
 
 // Komponen kecil untuk menampilkan field form (lebih rapi)
 const FormField = ({
@@ -456,9 +457,9 @@ export default function DetailAI() {
             </h2>
             <div className="w-full aspect-square rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
               {aiData.gambar ? (
-                <img
-                  src={`https://monja-file.pptik.id/v1/view?path=presensi/${aiData.gambar}`}
-                  alt="Gambar AI"
+                <ImageWithFallback
+                  filename={aiData.gambar}
+                  alt={`Gambar ${aiData.nama}`}
                   className="w-full h-full object-cover"
                 />
               ) : (

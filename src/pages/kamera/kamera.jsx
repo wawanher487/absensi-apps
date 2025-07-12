@@ -3,7 +3,7 @@ import { FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Pagination from "../../components/pagination";
 import { localApi } from "../../api/axiosInstance";
-
+import ImageWithFallback from "../../components/ImageWithFallback";
 
 export default function KameraPage() {
   const [dataKamera, setDataKamera] = useState([]);
@@ -91,9 +91,9 @@ export default function KameraPage() {
           <Link to={`${kamera.id}`} key={kamera.id || index}>
             <div className="bg-white p-4 rounded shadow border text-center hover:shadow-lg transition cursor-pointer">
               {kamera.gambar ? (
-                <img
-                  src={`https://monja-file.pptik.id/v1/view?path=presensi/${kamera.gambar}`}
-                  alt={`Gambar ${kamera.guid}`}
+                <ImageWithFallback
+                  filename={kamera.gambar}
+                  alt={`Gambar ${kamera.guid_device}`}
                   className="w-full h-40 object-cover rounded mb-2"
                 />
               ) : (
@@ -131,4 +131,3 @@ export function formatTanggalPendek(datetimeStr) {
 
   return `${dd}-${mm}-${yyyy}`;
 }
-
