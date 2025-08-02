@@ -73,7 +73,8 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               collapsed={collapsed}
             />
             <NavItemExternal
-              href="http://localhost:6734/"
+              // href="http://localhost:6734/"
+              href="https://analysis-production-c800.up.railway.app/"
               icon={<Camera size={18} />}
               label="Lakukan Absensi"
               collapsed={collapsed}
