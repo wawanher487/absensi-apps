@@ -5,7 +5,7 @@ import Dashboard from "../pages/Dashboard";
 import KameraPage from "../pages/kamera/kamera";
 import KameraDetail from "../pages/kamera/KameraDetail";
 import Laporan from "../pages/laporan/Laporan";
-import Login from "../pages/login";
+import Login from "../pages/Login";
 import Ai from "../pages/AI/AI";
 import DetailAI from "../pages/AI/AiDetail";
 import ProtectedRoute from "../components/protectedRoute";
