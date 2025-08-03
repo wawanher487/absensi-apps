@@ -83,13 +83,13 @@ const DashboardPresensi = () => {
       color: "bg-purple-100",
     },
     {
-      title: "Total Kehadiran",
+      title: "Hadir Tepat Waktu",
       value: stats.hadir,
       icon: <UserCheck className="text-green-600 w-7 h-7" />,
       color: "bg-green-100",
     },
     {
-      title: "Total Keterlambatan",
+      title: "Hadir Terlambat",
       value: stats.telat,
       icon: <AlarmClock className="text-red-600 w-7 h-7" />,
       color: "bg-red-100",
